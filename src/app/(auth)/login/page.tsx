@@ -6,7 +6,14 @@ export const metadata: Metadata = {
   title: 'Giriş Yap',
 }
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ callbackUrl?: string }>
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { callbackUrl } = await searchParams
+  const safeCallbackURL = callbackUrl?.startsWith('/') ? callbackUrl : '/'
+
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
@@ -19,7 +26,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-        <LoginForm />
+        <LoginForm callbackURL={safeCallbackURL} />
       </div>
     </div>
   )
