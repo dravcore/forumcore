@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signIn } from '@/lib/auth-client'
+import { OAuthButtons } from '@/components/shared/OAuthButtons'
 import { loginSchema, type LoginInput } from '@/server/validations/authValidations'
 
-export function LoginForm() {
+export function LoginForm({ callbackURL = '/' }: { callbackURL?: string }) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -35,7 +36,7 @@ export function LoginForm() {
       return
     }
 
-    router.push('/')
+    router.push(callbackURL)
     router.refresh()
   }
 
@@ -81,6 +82,17 @@ export function LoginForm() {
         {isSubmitting && <Loader2 className="animate-spin" />}
         {isSubmitting ? 'Giriş yapılıyor...' : 'Giriş Yap'}
       </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">veya</span>
+        </div>
+      </div>
+
+      <OAuthButtons callbackURL={callbackURL} />
     </form>
   )
 }
