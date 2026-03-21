@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { Users, Search } from 'lucide-react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAdminUsers } from '@/server/queries/adminUserQueries'
@@ -15,13 +15,13 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 interface Props {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
 export default async function AdminUsersPage({ searchParams }: Props) {
-  const { page: pageParam } = await searchParams
+  const { page: pageParam, q } = await searchParams
   const page = Math.max(1, Number(pageParam) || 1)
-  const { users, total, pageCount } = await getAdminUsers(page)
+  const { users, total, pageCount } = await getAdminUsers(page, 20, q)
 
   return (
     <div>
@@ -31,6 +31,18 @@ export default async function AdminUsersPage({ searchParams }: Props) {
           <p className="mt-0.5 text-sm text-muted-foreground">{total} kullanıcı</p>
         </div>
       </div>
+
+      <form method="GET" className="mb-4">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="İsim, kullanıcı adı veya email ara..."
+            className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          />
+        </div>
+      </form>
 
       {users.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
@@ -73,13 +85,13 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       {pageCount > 1 && (
         <div className="mt-6 flex items-center justify-center gap-2">
           {page > 1 && (
-            <Link href={`/admin/users?page=${page - 1}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+            <Link href={`/admin/users?page=${page - 1}${q ? `&q=${q}` : ''}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
               <ChevronLeft className="h-4 w-4" />Önceki
             </Link>
           )}
           <span className="text-sm text-muted-foreground">{page} / {pageCount}</span>
           {page < pageCount && (
-            <Link href={`/admin/users?page=${page + 1}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+            <Link href={`/admin/users?page=${page + 1}${q ? `&q=${q}` : ''}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
               Sonraki<ChevronRight className="h-4 w-4" />
             </Link>
           )}
