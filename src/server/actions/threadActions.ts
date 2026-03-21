@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
-import { requireAuth } from '@/lib/session'
+import { requireAuth, requireModerator } from '@/lib/session'
 import { slugify } from '@/lib/slugify'
 import { createThreadSchema } from '@/server/validations/threadValidations'
 
@@ -69,4 +69,34 @@ export async function deleteThread(threadId: string, categorySlug: string) {
   revalidatePath(`/c/${categorySlug}`)
   revalidatePath('/')
   return { success: true as const }
+}
+
+export async function pinThread(threadId: string, categorySlug: string) {
+  await requireModerator()
+
+  const thread = await db.thread.findUnique({ where: { id: threadId } })
+  if (!thread) return { success: false as const, error: 'Konu bulunamadı.' }
+
+  await db.thread.update({
+    where: { id: threadId },
+    data: { isPinned: !thread.isPinned },
+  })
+
+  revalidatePath(`/c/${categorySlug}`)
+  return { success: true as const, isPinned: !thread.isPinned }
+}
+
+export async function lockThread(threadId: string, categorySlug: string) {
+  await requireModerator()
+
+  const thread = await db.thread.findUnique({ where: { id: threadId } })
+  if (!thread) return { success: false as const, error: 'Konu bulunamadı.' }
+
+  await db.thread.update({
+    where: { id: threadId },
+    data: { isLocked: !thread.isLocked },
+  })
+
+  revalidatePath(`/c/${categorySlug}`)
+  return { success: true as const, isLocked: !thread.isLocked }
 }

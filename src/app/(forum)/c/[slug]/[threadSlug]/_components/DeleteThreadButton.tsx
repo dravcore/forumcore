@@ -18,11 +18,8 @@ export function DeleteThreadButton({ threadId, categorySlug }: DeleteThreadButto
     if (!confirm('Bu konuyu silmek istediğinden emin misin? Bu işlem geri alınamaz.')) return
     startTransition(async () => {
       const result = await deleteThread(threadId, categorySlug)
-      if (result.success) {
-        router.push(`/c/${categorySlug}`)
-      } else {
-        alert(result.error)
-      }
+      if (result.success) router.push(`/c/${categorySlug}`)
+      else alert(result.error)
     })
   }
 

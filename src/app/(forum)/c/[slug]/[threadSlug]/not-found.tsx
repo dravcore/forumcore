@@ -9,13 +9,9 @@ export default function ThreadNotFound() {
       <MessageSquareOff className="h-12 w-12 text-muted-foreground/50" />
       <div>
         <h1 className="text-xl font-semibold">Konu bulunamadı</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Bu konu mevcut değil ya da silinmiş olabilir.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Bu konu mevcut değil ya da silinmiş olabilir.</p>
       </div>
-      <Link href="/" className={cn(buttonVariants({ variant: 'outline' }))}>
-        Ana sayfaya dön
-      </Link>
+      <Link href="/" className={cn(buttonVariants({ variant: 'outline' }))}>Ana sayfaya dön</Link>
     </div>
   )
 }
