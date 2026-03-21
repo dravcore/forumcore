@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
-// Giriş gerektiren route'lar
+// Routes that require authentication
 const PROTECTED_PREFIXES = [
   '/settings',
   '/u/edit',
   '/admin',
 ]
 
-// Giriş yapılmışken erişilemeyen route'lar
+// Routes inaccessible when already logged in
 const AUTH_ROUTES = ['/login', '/register']
 
 export async function proxy(request: NextRequest) {
@@ -21,14 +21,14 @@ export async function proxy(request: NextRequest) {
 
   const session = await auth.api.getSession({ headers: request.headers })
 
-  // Korumalı sayfaya giriş yapmadan erişiliyor
+  // Accessing a protected page without being logged in
   if (isProtected && !session) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Giriş yapılmışken login/register'a gidiliyor
+  // Navigating to login/register while already logged in
   if (isAuthRoute && session) {
     return NextResponse.redirect(new URL('/', request.url))
   }

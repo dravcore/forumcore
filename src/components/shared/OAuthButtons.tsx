@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { signIn } from '@/lib/auth-client'
 
-// SVG ikonlar — küçük, inline
+// SVG icons — small, inline
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
@@ -47,7 +47,7 @@ export function OAuthButtons({ callbackURL = '/' }: OAuthButtonsProps) {
   async function handleOAuth(provider: 'google' | 'github') {
     setLoadingProvider(provider)
     await signIn.social({ provider, callbackURL })
-    // Redirect yönetimi Better Auth tarafından yapılır
+    // Redirect is handled by Better Auth
   }
 
   return (

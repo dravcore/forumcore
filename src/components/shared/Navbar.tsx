@@ -28,7 +28,7 @@ export function Navbar() {
           </Link>
         </nav>
 
-        {/* Auth — session durumuna göre NavbarUser render eder */}
+        {/* Auth — renders NavbarUser based on session state */}
         <NavbarUser />
       </div>
     </header>

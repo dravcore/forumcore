@@ -45,11 +45,11 @@ export const auth = betterAuth({
       : {}),
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 30, // 30 gün
-    updateAge: 60 * 60 * 24, // Her gün güncelle
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24, // Refresh every day
     cookieCache: {
       enabled: true,
-      maxAge: 60 * 5, // 5 dakika
+      maxAge: 60 * 5, // 5 minutes
     },
   },
 })
