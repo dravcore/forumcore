@@ -94,10 +94,15 @@ When writing UI code, think like an experienced UI/UX designer. Visual quality, 
 
 ## Git Workflow
 
-- Direct commits to `main` are forbidden — every feature lives on its own branch
-- Branch format: `feat/dra-14-category-crud`, `fix/dra-22-mention-bug`
-- Commit format: `feat(threads): add pagination` (Conventional Commits)
+Two permanent branches:
+- **`main`** — production-ready, stable. Never commit directly.
+- **`develop`** — integration branch. Features merge here first, then `develop` → `main`.
+
+Feature branches are named after the feature, not the phase:
+- Branch format: `feat/rich-text-editor`, `fix/notification-duplicate`
+- Commit format: `feat(editor): add TipTap markdown support` (Conventional Commits)
 - **All commit messages must be in English**
+- Flow: `feature branch` → PR → `develop` → PR → `main`
 - Multiple agents (Claude + Cursor) work on **different branches** simultaneously
 - Before opening a PR: build must pass, no TypeScript errors
 
