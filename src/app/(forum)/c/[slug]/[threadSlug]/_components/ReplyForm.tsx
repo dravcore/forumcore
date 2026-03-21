@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, MessageSquare } from 'lucide-react'
@@ -14,14 +14,24 @@ interface ReplyFormProps {
   threadId: string
   categorySlug: string
   threadSlug: string
+  initialContent?: string
+  onQuoteConsumed?: () => void
 }
 
-export function ReplyForm({ threadId, categorySlug, threadSlug }: ReplyFormProps) {
+export function ReplyForm({ threadId, categorySlug, threadSlug, initialContent, onQuoteConsumed }: ReplyFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PostContentInput>({
+  const { register, handleSubmit, reset, setValue, getValues, formState: { errors, isSubmitting } } = useForm<PostContentInput>({
     resolver: zodResolver(postContentSchema),
   })
+
+  useEffect(() => {
+    if (initialContent) {
+      const current = getValues('content') ?? ''
+      setValue('content', initialContent + current)
+      onQuoteConsumed?.()
+    }
+  }, [initialContent]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit(data: PostContentInput) {
     setServerError(null)

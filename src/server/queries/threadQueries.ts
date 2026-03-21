@@ -52,7 +52,7 @@ export async function getThreadBySlug(slug: string) {
   })
 }
 
-export async function getPostsByThread(threadId: string, page = 1) {
+export async function getPostsByThread(threadId: string, page = 1, userId?: string) {
   const skip = (page - 1) * POSTS_PER_PAGE
 
   const [posts, total] = await Promise.all([
@@ -63,6 +63,8 @@ export async function getPostsByThread(threadId: string, page = 1) {
       take: POSTS_PER_PAGE,
       include: {
         author: { select: { id: true, name: true, username: true } },
+        _count: { select: { reactions: true } },
+        reactions: userId ? { where: { userId, type: 'LIKE' }, select: { id: true } } : false,
       },
     }),
     db.post.count({ where: { threadId, deletedAt: null } }),

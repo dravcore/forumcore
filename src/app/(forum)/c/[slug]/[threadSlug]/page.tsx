@@ -7,8 +7,7 @@ import { getSession } from '@/lib/session'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
-import { PostItem } from './_components/PostItem'
-import { ReplyForm } from './_components/ReplyForm'
+import { ThreadPostsSection } from './_components/ThreadPostsSection'
 import { DeleteThreadButton } from './_components/DeleteThreadButton'
 import { ThreadModActions } from './_components/ThreadModActions'
 
@@ -32,10 +31,10 @@ export default async function ThreadPage({ params, searchParams }: Props) {
   const [thread, session] = await Promise.all([getThreadBySlug(threadSlug), getSession()])
   if (!thread || thread.category.slug !== slug) notFound()
 
-  const { posts, pageCount } = await getPostsByThread(thread.id, page)
+  const { posts, pageCount } = await getPostsByThread(thread.id, page, session?.user.id)
 
-  const isMod = session && (session.user.role === 'ADMIN' || session.user.role === 'MODERATOR')
-  const canDeleteThread = session && (session.user.id === thread.authorId || !!isMod)
+  const isMod = !!(session && (session.user.role === 'ADMIN' || session.user.role === 'MODERATOR'))
+  const canDeleteThread = !!(session && (session.user.id === thread.authorId || isMod))
   const firstPostGlobalIndex = (page - 1) * 20
 
   return (
@@ -80,22 +79,19 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {/* Posts */}
-      <div className="flex flex-col gap-4">
-        {posts.map((post, index) => {
-          const canEditPost = !!(session && (session.user.id === post.author.id || isMod))
-          return (
-            <PostItem
-              key={post.id}
-              post={post}
-              isOP={firstPostGlobalIndex + index === 0}
-              canEdit={canEditPost}
-              categorySlug={slug}
-              threadSlug={threadSlug}
-            />
-          )
-        })}
-      </div>
+      {/* Posts + Reply */}
+      <ThreadPostsSection
+        posts={posts}
+        firstPostGlobalIndex={firstPostGlobalIndex}
+        threadAuthorId={thread.authorId}
+        sessionUserId={session?.user.id}
+        isMod={isMod}
+        isLoggedIn={!!session}
+        isLocked={thread.isLocked}
+        threadId={thread.id}
+        categorySlug={slug}
+        threadSlug={threadSlug}
+      />
 
       {/* Post Pagination */}
       {pageCount > 1 && (
@@ -114,15 +110,14 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         </div>
       )}
 
-      {/* Reply Section */}
-      {thread.isLocked ? (
+      {/* Locked notice for non-logged-in users */}
+      {thread.isLocked && (
         <div className="mt-6 rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
           <Lock className="mx-auto mb-2 h-4 w-4" />
           Bu konu kilitli. Yeni yanıt eklenemez.
         </div>
-      ) : session ? (
-        <ReplyForm threadId={thread.id} categorySlug={slug} threadSlug={threadSlug} />
-      ) : (
+      )}
+      {!thread.isLocked && !session && (
         <div className="mt-6 rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
           Yanıt vermek için{' '}
           <Link href={`/login?callbackUrl=/c/${slug}/${threadSlug}`} className="font-medium text-primary hover:underline">

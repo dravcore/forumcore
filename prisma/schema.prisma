@@ -43,6 +43,8 @@ model User {
   accounts      Account[]
   threads       Thread[]
   posts         Post[]
+  reactions     Reaction[]
+  reports       Report[]   @relation("reports_filed")
 
   @@map("users")
 }
@@ -156,8 +158,42 @@ model Post {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
+  reactions Reaction[]
+
   @@index([threadId])
   @@index([authorId])
   @@index([createdAt(sort: Asc)])
   @@map("posts")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  type      String   @default("LIKE")
+  createdAt DateTime @default(now())
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([postId])
+  @@map("reactions")
+}
+
+model Report {
+  id         String    @id @default(cuid())
+  targetType String
+  targetId   String
+  reason     String    @db.Text
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  reporterId String
+  reporter   User   @relation("reports_filed", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([resolvedAt])
+  @@map("reports")
 }
