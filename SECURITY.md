@@ -1,71 +1,71 @@
-# Güvenlik Politikası
+# Security Policy
 
-## Güvenlik Açığı Bildirme
+## Reporting a Vulnerability
 
-Projede bir güvenlik açığı keşfettiysen lütfen GitHub Issues üzerinden **public** olarak açma.
-Bunun yerine doğrudan proje sahibine özel mesaj ile bildir.
+If you discover a security vulnerability in this project, please **do not** open a public GitHub Issue.
+Instead, notify the project owner directly via private message.
 
-Bildiriminde şunları belirt:
-- Açığın türü (XSS, SQL injection, auth bypass vb.)
-- Açığı tetiklemek için adımlar
-- Olası etkisi
-- Varsa düzeltme önerisi
+Your report should include:
+- Type of vulnerability (XSS, SQL injection, auth bypass, etc.)
+- Steps to reproduce the issue
+- Potential impact
+- Suggested fix, if any
 
-## Desteklenen Versiyonlar
+## Supported Versions
 
-Yalnızca `main` branch'teki son versiyon güvenlik güncellemeleri alır.
+Only the latest version on the `main` branch receives security updates.
 
-## Güvenlik Önlemleri
+## Security Measures
 
-### Kullanıcı İçeriği
+### User Content
 
-- Tüm kullanıcı girdileri Zod ile doğrulanır
-- Markdown içerik `rehype-sanitize` ile render edilir
-- `dangerouslySetInnerHTML` kullanılmaz
+- All user input is validated with Zod
+- Markdown content is rendered with `rehype-sanitize`
+- `dangerouslySetInnerHTML` is never used
 
-### Kimlik Doğrulama
+### Authentication
 
-- Better Auth ile yönetilir
-- Şifreler bcrypt ile hashlenir
-- Session'lar güvenli HTTP-only cookie'lerde saklanır
-- OAuth 2.0 desteği (Google, GitHub)
+- Managed by Better Auth
+- Passwords are hashed with bcrypt
+- Sessions are stored in secure HTTP-only cookies
+- OAuth 2.0 support (Google, GitHub)
 
-### Yetkilendirme
+### Authorization
 
-- Her server action'da session + rol kontrolü yapılır
-- Kaynak sahipliği doğrulanır (kullanıcı yalnızca kendi içeriğini düzenleyebilir)
-- Admin işlemleri ayrı middleware ile korunur
+- Every server action checks session + role
+- Resource ownership is verified (users can only edit their own content)
+- Admin operations are protected by separate middleware
 
-### Veritabanı
+### Database
 
-- Prisma ORM parametreli sorgular kullanır (SQL injection koruması)
-- `$queryRaw` kullanıldığında `Prisma.sql` tagged template ile
+- Prisma ORM uses parameterized queries (SQL injection protection)
+- When using `$queryRaw`, always use `Prisma.sql` tagged templates
 
-### Dosya Upload
+### File Uploads
 
-- MIME type kontrolü (server tarafında)
-- Maksimum boyut sınırı
-- UUID ile yeniden adlandırma
-- MinIO signed URL ile servis
+- MIME type validation (server-side)
+- Maximum file size limit
+- Files renamed with UUID
+- Served via MinIO signed URLs
 
-### HTTP Güvenlik Başlıkları
+### HTTP Security Headers
 
-`next.config.ts` içinde tanımlıdır:
+Defined in `next.config.ts`:
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 
 ### Rate Limiting
 
-- Redis tabanlı rate limiter
-- Auth endpoint'leri: 5 istek / dakika
-- Post oluşturma: 10 istek / dakika
+- In-memory rate limiter
+- Auth endpoints: 5 requests / minute
+- Post creation: 10 requests / minute
 
-## Bağımlılık Güncellemeleri
+## Dependency Updates
 
 ```bash
-npm audit          # Güvenlik açığı taraması
-npm audit fix      # Otomatik düzeltilebilenleri güncelle
+npm audit          # Scan for vulnerabilities
+npm audit fix      # Auto-fix where possible
 ```
 
-Bağımlılıklar düzenli aralıklarla güncellenir. Kritik güvenlik açıkları ivedilikle giderilir.
+Dependencies are updated regularly. Critical security vulnerabilities are addressed immediately.

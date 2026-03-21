@@ -1,77 +1,77 @@
-# Katkıda Bulunma Rehberi
+# Contributing Guide
 
-## Geliştirme Ortamı Kurulumu
+## Development Environment Setup
 
 ```bash
 git clone <repo-url>
 cd forumcore
 npm install
 cp .env.example .env
-# .env dosyasını düzenle
+# Edit the .env file
 npx prisma migrate dev
 npm run dev
 ```
 
 ## Git Workflow
 
-### Temel Kural
+### Core Rule
 
-`main` branch'e **asla** direkt commit yapılmaz. Her değişiklik bir branch'te geliştirilir, PR ile main'e alınır.
+**Never** commit directly to `main`. Every change is developed on a branch and merged into main via a PR.
 
-### Branch İsimlendirme
-
-```
-<tip>/<linear-id>-<kısa-açıklama>
-```
-
-| Prefix | Kullanım | Örnek |
-|--------|----------|-------|
-| `feat/` | Yeni özellik | `feat/dra-14-kategori-crud` |
-| `fix/` | Bug düzeltme | `fix/dra-22-mention-hatasi` |
-| `chore/` | Tooling, bağımlılık | `chore/dra-8-coolify-setup` |
-| `refactor/` | Kod iyileştirme | `refactor/dra-16-pagination` |
-
-### Commit Mesajı Formatı
-
-[Conventional Commits](https://www.conventionalcommits.org/) formatı:
+### Branch Naming
 
 ```
-<tip>(<kapsam>): <açıklama>
+<type>/<linear-id>-<short-description>
+```
+
+| Prefix | Usage | Example |
+|--------|-------|---------|
+| `feat/` | New feature | `feat/dra-14-category-crud` |
+| `fix/` | Bug fix | `fix/dra-22-mention-bug` |
+| `chore/` | Tooling, dependencies | `chore/dra-8-coolify-setup` |
+| `refactor/` | Code improvement | `refactor/dra-16-pagination` |
+
+### Commit Message Format
+
+[Conventional Commits](https://www.conventionalcommits.org/) format. **All commit messages must be in English.**
+
+```
+<type>(<scope>): <description>
 
 feat(threads): add pagination to thread list
 fix(auth): redirect to login when session expires
 chore(deps): update prisma to 6.x
 ```
 
-**Kapsam örnekleri:** `auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`
+**Scope examples:** `auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`
 
-### PR Süreci
+### PR Process
 
-1. Branch oluştur: `git checkout -b feat/dra-14-kategori-crud`
-2. Değişiklikleri yap ve commit'le
-3. `npm run build` — build alınmalı
-4. `npm run typecheck` — TypeScript hatası olmamalı
-5. PR aç, başlıkta Linear ID belirt: `feat(categories): add admin CRUD — Closes DRA-14`
-6. Main'e merge et
+1. Create a branch: `git checkout -b feat/dra-14-category-crud`
+2. Make changes and commit
+3. `npm run build` — build must pass
+4. `npm run typecheck` — no TypeScript errors
+5. Open a PR, include Linear ID in the title: `feat(categories): add admin CRUD — Closes DRA-14`
+6. Merge into main
 
-## Çoklu Agent (Claude Code + Cursor)
+## Multiple Agents (Claude Code + Cursor)
 
-İki AI agent aynı anda çalışırken:
+When two AI agents work simultaneously:
 
-- **Her agent farklı branch'te çalışır** — aynı branch'te eş zamanlı çalışma yapılmaz
-- Yeni göreve başlamadan önce `git status` kontrol edilir
-- Commit'ten önce `git pull origin main --rebase` ile güncel kalınır
+- **Each agent works on a different branch** — never work on the same branch concurrently
+- Run `git status` before starting a new task
+- Stay up to date with `git pull origin main --rebase` before committing
 
-## Kod Standartları
+## Code Standards
 
-### İsimlendirme
+### Naming
 
-| Tür | Format | Örnek |
-|-----|--------|-------|
-| Bileşen dosyası | PascalCase | `ThreadCard.tsx` |
+| Type | Format | Example |
+|------|--------|---------|
+| Component file | PascalCase | `ThreadCard.tsx` |
 | Action/query | camelCase | `threadActions.ts` |
 | Hook | camelCase + `use` | `useInfiniteScroll.ts` |
-| Sabit | UPPER_SNAKE_CASE | `MAX_POST_LENGTH` |
+| Constant | UPPER_SNAKE_CASE | `MAX_POST_LENGTH` |
 
 ### Server Actions
 
@@ -82,47 +82,47 @@ export async function updateThread(...) {}
 export async function deleteThread(...) {}
 ```
 
-### Import Sırası
+### Import Order
 
 ```ts
 // 1. React/Next.js
-// 2. Dış paketler
-// 3. İç modüller (@/ alias)
-// 4. Tip importları
+// 2. External packages
+// 3. Internal modules (@/ alias)
+// 4. Type imports
 ```
 
-## Test
+## Testing
 
 ```bash
-npm run test          # Vitest unit/entegrasyon testleri
-npm run test:e2e      # Playwright E2E testleri
-npm run test:coverage # Coverage raporu
+npm run test          # Vitest unit/integration tests
+npm run test:e2e      # Playwright E2E tests
+npm run test:coverage # Coverage report
 ```
 
-### Ne Test Edilmeli
+### What to Test
 
-- ✅ Server Actions (yetki kontrolü, input validasyonu, başarılı durum)
-- ✅ Utility fonksiyonlar (slugify, formatDate vb.)
-- ✅ Zod validasyon şemaları
-- ✅ Kritik E2E akışlar (kayıt, giriş, thread oluşturma)
-- ❌ shadcn/ui bileşenleri
-- ❌ Snapshot testleri
+- ✅ Server Actions (auth checks, input validation, success case)
+- ✅ Utility functions (slugify, formatDate, etc.)
+- ✅ Zod validation schemas
+- ✅ Critical E2E flows (register, login, thread creation)
+- ❌ shadcn/ui components
+- ❌ Snapshot tests
 
 ## Environment Variables
 
-Tüm env var'lar `src/env.ts` üzerinden Zod ile doğrulanır. Yeni bir değişken eklerken:
+All env vars are validated with Zod through `src/env.ts`. When adding a new variable:
 
-1. `src/env.ts`'e şema kuralını ekle
-2. `.env.example`'a açıklamalı şekilde ekle
-3. Coolify'da production değerini tanımla
-4. `.env` yerel değerini ayarla (repoya commit etme)
+1. Add the schema rule to `src/env.ts`
+2. Add it with a description to `.env.example`
+3. Set the production value in Coolify
+4. Set the local value in `.env` (do not commit to the repo)
 
-## Veritabanı Değişiklikleri
+## Database Changes
 
 ```bash
-# Schema değişikliği sonrası
-npx prisma migrate dev --name <açıklayıcı-isim>
+# After a schema change
+npx prisma migrate dev --name <descriptive-name>
 npx prisma generate
 ```
 
-Migration isimleri açıklayıcı olmalı: `add_reaction_table`, `add_thread_pin_field`
+Migration names should be descriptive: `add_reaction_table`, `add_thread_pin_field`

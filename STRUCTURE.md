@@ -1,61 +1,61 @@
-# Proje Yapısı
+# Project Structure
 
-## Kök Dizin
+## Root Directory
 
 ```
 forumcore/
 ├── .cursor/
-│   └── rules/               # Cursor AI kuralları (.mdc)
+│   └── rules/               # Cursor AI rules (.mdc)
 ├── prisma/
-│   ├── schema.prisma        # Veritabanı şeması
-│   └── migrations/          # Migration geçmişi
-├── public/                  # Statik dosyalar
-├── src/                     # Uygulama kodu
+│   ├── schema.prisma        # Database schema
+│   └── migrations/          # Migration history
+├── public/                  # Static files
+├── src/                     # Application code
 ├── tests/
-│   └── e2e/                 # Playwright E2E testleri
-├── .env.example             # Gerekli env var şablonu
-├── CLAUDE.md                # Claude Code bağlamı
-├── CONTRIBUTING.md          # Geliştirme kuralları
-├── SECURITY.md              # Güvenlik politikası
-└── STRUCTURE.md             # Bu dosya
+│   └── e2e/                 # Playwright E2E tests
+├── .env.example             # Required env var template
+├── CLAUDE.md                # Claude Code context
+├── CONTRIBUTING.md          # Development guidelines
+├── SECURITY.md              # Security policy
+└── STRUCTURE.md             # This file
 ```
 
-## src/ Dizini
+## src/ Directory
 
 ```
 src/
 ├── app/                         # Next.js App Router
-│   ├── (auth)/                  # Route group — auth sayfaları
+│   ├── (auth)/                  # Route group — auth pages
 │   │   ├── login/
 │   │   │   └── page.tsx
 │   │   └── register/
 │   │       └── page.tsx
-│   ├── (forum)/                 # Route group — forum sayfaları
+│   ├── (forum)/                 # Route group — forum pages
 │   │   ├── c/
-│   │   │   └── [slug]/          # Kategori sayfası
+│   │   │   └── [slug]/          # Category page
 │   │   │       └── page.tsx
 │   │   └── t/
-│   │       └── [slug]/          # Thread detay sayfası
+│   │       └── [slug]/          # Thread detail page
 │   │           └── page.tsx
-│   ├── admin/                   # Admin paneli
-│   │   ├── _components/         # Sadece admin'e ait bileşenler
+│   ├── admin/                   # Admin panel
+│   │   ├── _components/         # Admin-only components
 │   │   └── page.tsx
 │   ├── api/
 │   │   ├── auth/
 │   │   │   └── [...all]/        # Better Auth handler
 │   │   └── sse/                 # Server-Sent Events
-│   ├── error.tsx                # Global hata sayfası
-│   ├── not-found.tsx            # 404 sayfası
+│   ├── error.tsx                # Global error page
+│   ├── not-found.tsx            # 404 page
 │   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Ana sayfa
+│   └── page.tsx                 # Home page
 │
 ├── components/
-│   ├── ui/                      # shadcn/ui bileşenleri (dokunma)
-│   ├── forum/                   # Forum'a özel bileşenler
+│   ├── ui/                      # shadcn/ui components (do not touch)
+│   ├── forum/                   # Forum-specific components
 │   │   ├── ThreadCard.tsx
 │   │   ├── PostItem.tsx
 │   │   └── CategoryList.tsx
-│   └── shared/                  # Genel paylaşılan bileşenler
+│   └── shared/                  # Shared general components
 │       ├── Navbar.tsx
 │       ├── Footer.tsx
 │       └── UserAvatar.tsx
@@ -64,59 +64,59 @@ src/
 │   ├── db.ts                    # Prisma Client singleton
 │   ├── auth.ts                  # Better Auth (server) config
 │   ├── auth-client.ts           # Better Auth (client) config
-│   ├── env.ts                   # Environment validasyonu (Zod)
-│   ├── logger.ts                # Loglama utility
-│   └── utils.ts                 # cn() ve genel utils
+│   ├── env.ts                   # Environment validation (Zod)
+│   ├── logger.ts                # Logging utility
+│   └── utils.ts                 # cn() and general utils
 │
 ├── server/
-│   ├── actions/                 # Server Actions (mutation)
+│   ├── actions/                 # Server Actions (mutations)
 │   │   ├── threadActions.ts
 │   │   ├── postActions.ts
 │   │   ├── userActions.ts
-│   │   └── __tests__/           # Action testleri
-│   ├── queries/                 # DB okuma fonksiyonları
+│   │   └── __tests__/           # Action tests
+│   ├── queries/                 # DB read functions
 │   │   ├── threadQueries.ts
 │   │   ├── categoryQueries.ts
 │   │   └── __tests__/
-│   └── validations/             # Zod şemaları
+│   └── validations/             # Zod schemas
 │       ├── threadValidations.ts
 │       └── postValidations.ts
 │
-└── types/                       # Paylaşılan TypeScript tipleri
+└── types/                       # Shared TypeScript types
     ├── thread.types.ts
     └── user.types.ts
 ```
 
-## Prisma Schema Modelleri
+## Prisma Schema Models
 
-| Model | Açıklama | Faz |
-|-------|----------|-----|
-| `User` | Kullanıcılar — Better Auth uyumlu + forum alanları (username, role, bio) | 1 |
-| `Session` | Better Auth session'ları | 1 |
-| `Account` | Better Auth OAuth hesapları | 1 |
-| `Verification` | Email doğrulama token'ları | 1 |
-| `Category` | Forum kategorileri (slug, order) | 1 |
-| `Thread` | Konular (isPinned, isLocked, softDelete) | 1 |
-| `Post` | Yanıtlar (content, editedAt, softDelete) | 1 |
-| `Reaction` | Like/reaction'lar | 5 |
-| `Notification` | Bildirimler | 6 |
-| `Report` | Kullanıcı raporları | 5 |
+| Model | Description | Phase |
+|-------|-------------|-------|
+| `User` | Users — Better Auth compatible + forum fields (username, role, bio) | 1 |
+| `Session` | Better Auth sessions | 1 |
+| `Account` | Better Auth OAuth accounts | 1 |
+| `Verification` | Email verification tokens | 1 |
+| `Category` | Forum categories (slug, order) | 1 |
+| `Thread` | Threads (isPinned, isLocked, softDelete) | 1 |
+| `Post` | Replies (content, editedAt, softDelete) | 1 |
+| `Reaction` | Likes/reactions | 5 |
+| `Notification` | Notifications | 6 |
+| `Report` | User reports | 5 |
 
-## Cursor AI Kuralları
+## Cursor AI Rules
 
-`.cursor/rules/` altındaki dosyalar Cursor agent'ının bağlamını oluşturur:
+Files under `.cursor/rules/` define the Cursor agent's context:
 
-| Dosya | Kapsam | Her Zaman Aktif |
-|-------|--------|:-:|
-| `project.mdc` | Genel kurallar, stack | ✅ |
-| `security.mdc` | Güvenlik zorunlulukları | ✅ |
-| `conventions.mdc` | İsimlendirme, dosya yapısı | ✅ |
-| `git.mdc` | Branch/commit stratejisi | ✅ |
-| `database.mdc` | Prisma, sorgu kuralları | — |
-| `components.mdc` | React bileşen kuralları | — |
-| `design.mdc` | UI/UX standartları | — |
-| `auth.mdc` | Better Auth kullanımı | — |
+| File | Scope | Always Active |
+|------|-------|:---:|
+| `project.mdc` | General rules, stack | ✅ |
+| `security.mdc` | Security requirements | ✅ |
+| `conventions.mdc` | Naming, file structure | ✅ |
+| `git.mdc` | Branch/commit strategy | ✅ |
+| `database.mdc` | Prisma, query rules | — |
+| `components.mdc` | React component rules | — |
+| `design.mdc` | UI/UX standards | — |
+| `auth.mdc` | Better Auth usage | — |
 | `performance.mdc` | N+1, caching, bundle | — |
-| `error-handling.mdc` | Hata yönetimi | — |
-| `testing.mdc` | Test stratejisi | — |
-| `env-config.mdc` | Environment validasyonu | — |
+| `error-handling.mdc` | Error handling | — |
+| `testing.mdc` | Test strategy | — |
+| `env-config.mdc` | Environment validation | — |
