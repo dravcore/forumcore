@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Pencil, Trash2, Loader2, Check, X } from 'lucide-react'
+import { Pencil, Trash2, Loader2, Check, X, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { updatePost, deletePost } from '@/server/actions/postActions'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
+import { LikeButton } from './LikeButton'
+import { ReportButton } from './ReportButton'
 
 interface PostItemProps {
   post: {
@@ -15,14 +17,18 @@ interface PostItemProps {
     editedAt: Date | null
     createdAt: Date
     author: { id: string; name: string; username: string | null }
+    _count: { reactions: number }
+    reactions: { id: string }[]
   }
   isOP: boolean
   canEdit: boolean
+  isLoggedIn: boolean
   categorySlug: string
   threadSlug: string
+  onQuote?: (text: string) => void
 }
 
-export function PostItem({ post, isOP, canEdit, categorySlug, threadSlug }: PostItemProps) {
+export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, threadSlug, onQuote }: PostItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
   const [isPending, startTransition] = useTransition()
@@ -44,7 +50,14 @@ export function PostItem({ post, isOP, canEdit, categorySlug, threadSlug }: Post
     })
   }
 
+  function handleQuote() {
+    const displayName = post.author.username ?? post.author.name
+    const quoted = `> **${displayName}** yazdı:\n${post.content.split('\n').map((l) => `> ${l}`).join('\n')}\n\n`
+    onQuote?.(quoted)
+  }
+
   const displayName = post.author.username ?? post.author.name
+  const liked = post.reactions.length > 0
 
   return (
     <div className="rounded-lg border bg-card p-5" id={`post-${post.id}`}>
@@ -106,9 +119,43 @@ export function PostItem({ post, isOP, canEdit, categorySlug, threadSlug }: Post
         </div>
       ) : (
         <div className="space-y-2 text-sm leading-relaxed text-foreground">
-          {post.content.split('\n').map((line, i) => (
-            <p key={i} className={line === '' ? 'my-1' : ''}>{line || '\u00A0'}</p>
-          ))}
+          {post.content.split('\n').map((line, i) => {
+            if (line.startsWith('> ')) {
+              return (
+                <blockquote key={i} className="border-l-2 border-muted-foreground/30 pl-3 text-muted-foreground italic">
+                  {line.replace(/^> \*\*(.+?)\*\* yazdı:/, '').replace(/^> /, '') || '\u00A0'}
+                </blockquote>
+              )
+            }
+            return <p key={i} className={line === '' ? 'my-1' : ''}>{line || '\u00A0'}</p>
+          })}
+        </div>
+      )}
+
+      {/* Post footer actions */}
+      {!isEditing && (
+        <div className="mt-3 flex items-center gap-1 border-t pt-3">
+          <LikeButton
+            postId={post.id}
+            initialCount={post._count.reactions}
+            initialLiked={liked}
+          />
+          {isLoggedIn && onQuote && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleQuote}
+              aria-label="Alıntıla"
+              className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Quote className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {isLoggedIn && (
+            <div className="ml-auto">
+              <ReportButton targetType="POST" targetId={post.id} />
+            </div>
+          )}
         </div>
       )}
     </div>
