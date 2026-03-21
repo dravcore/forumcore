@@ -62,7 +62,7 @@ chore(deps): update prisma to 7.x
 2. Make changes and commit
 3. `npm run build` — build must pass
 4. `npm run typecheck` — no TypeScript errors
-5. Open a PR targeting **`develop`**, include Linear ID: `feat(editor): add TipTap — Closes DRA-35`
+5. Open a PR targeting **`develop`**, include Linear ID: `feat(editor): add TipTap — Closes DRA-45`
 6. Merge into `develop`
 
 #### develop → main

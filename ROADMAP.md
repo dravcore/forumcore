@@ -15,6 +15,8 @@
 
 ## Upcoming Phases
 
+In Linear, each phase below maps to an **epic** (**DRA-37** … **DRA-44**). The **Linear** column in the tables is the Dravcore team issue key (child tasks under that epic).
+
 > Branches are named after the feature, not the phase (e.g. `feat/rich-text-editor`).
 > All feature branches target `develop`. Only `develop` merges into `main`.
 
@@ -26,10 +28,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-35 | Integrate TipTap editor (Markdown mode) | `feat/rich-text-editor` |
-| DRA-36 | Syntax highlighting for code blocks (Shiki/Prism) | `feat/code-highlighting` |
-| DRA-37 | Image upload in posts (MinIO, UUID rename, 5MB limit) | `feat/post-image-upload` |
-| DRA-38 | Live preview toggle (edit / preview split view) | `feat/editor-preview` |
+| DRA-45 | Integrate TipTap editor (Markdown mode) | `feat/rich-text-editor` |
+| DRA-46 | Syntax highlighting for code blocks (Shiki/Prism) | `feat/code-highlighting` |
+| DRA-47 | Image upload in posts (MinIO, UUID rename, 5MB limit) | `feat/post-image-upload` |
+| DRA-48 | Live preview toggle (edit / preview split view) | `feat/editor-preview` |
+
+Epic: **DRA-37** (Phase 9 — Rich Text Editor).
 
 ---
 
@@ -39,10 +43,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-39 | Tag model + schema migration | `feat/tag-schema` |
-| DRA-40 | Tag selection on thread creation/edit (max 5 tags) | `feat/thread-tags` |
-| DRA-41 | Tag pages: list threads by tag | `feat/tag-pages` |
-| DRA-42 | Tag management in admin panel (create, merge, delete) | `feat/admin-tag-management` |
+| DRA-49 | Tag model + schema migration | `feat/tag-schema` |
+| DRA-50 | Tag selection on thread creation/edit (max 5 tags) | `feat/thread-tags` |
+| DRA-51 | Tag pages: list threads by tag | `feat/tag-pages` |
+| DRA-52 | Tag management in admin panel (create, merge, delete) | `feat/admin-tag-management` |
+
+Epic: **DRA-38** (Phase 10 — Tag System).
 
 ---
 
@@ -52,10 +58,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-43 | Reputation score: calculated from reactions received + posts | `feat/reputation-score` |
-| DRA-44 | Badge system: schema, award logic, display on profile | `feat/badges` |
-| DRA-45 | Trust levels: MEMBER → REGULAR → VETERAN (auto-assigned) | `feat/trust-levels` |
-| DRA-46 | Reputation/badge display on user profile and post items | `feat/reputation-ui` |
+| DRA-53 | Reputation score: calculated from reactions received + posts | `feat/reputation-score` |
+| DRA-54 | Badge system: schema, award logic, display on profile | `feat/badges` |
+| DRA-55 | Trust levels: MEMBER → REGULAR → VETERAN (auto-assigned) | `feat/trust-levels` |
+| DRA-56 | Reputation/badge display on user profile and post items | `feat/reputation-ui` |
+
+Epic: **DRA-39** (Phase 11 — User Reputation & Badges).
 
 ---
 
@@ -65,10 +73,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-47 | Conversation + Message schema migration | `feat/dm-schema` |
-| DRA-48 | DM inbox: list conversations, unread count | `feat/dm-inbox` |
-| DRA-49 | DM compose and reply UI | `feat/dm-compose` |
-| DRA-50 | DM notifications (bell + email) | `feat/dm-notifications` |
+| DRA-57 | Conversation + Message schema migration | `feat/dm-schema` |
+| DRA-58 | DM inbox: list conversations, unread count | `feat/dm-inbox` |
+| DRA-59 | DM compose and reply UI | `feat/dm-compose` |
+| DRA-60 | DM notifications (bell + email) | `feat/dm-notifications` |
+
+Epic: **DRA-40** (Phase 12 — Private Messaging).
 
 ---
 
@@ -78,10 +88,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-51 | Moderation queue: review reports in a single view | `feat/moderation-queue` |
-| DRA-52 | Temporary/permanent bans with expiry timestamps | `feat/user-bans` |
-| DRA-53 | Audit log: record every admin/mod action to DB | `feat/audit-log` |
-| DRA-54 | Audit log viewer in admin panel | `feat/audit-log-ui` |
+| DRA-61 | Moderation queue: review reports in a single view | `feat/moderation-queue` |
+| DRA-62 | Temporary/permanent bans with expiry timestamps | `feat/user-bans` |
+| DRA-63 | Audit log: record every admin/mod action to DB | `feat/audit-log` |
+| DRA-64 | Audit log viewer in admin panel | `feat/audit-log-ui` |
+
+Epic: **DRA-41** (Phase 13 — Advanced Moderation).
 
 ---
 
@@ -91,10 +103,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-55 | Forum-wide stats: DAU, new threads/posts per day | `feat/analytics-schema` |
-| DRA-56 | Per-category analytics: activity, top contributors | `feat/category-analytics` |
-| DRA-57 | Admin analytics dashboard with charts (Recharts) | `feat/analytics-dashboard` |
-| DRA-58 | Content growth report: monthly snapshot export (CSV) | `feat/analytics-export` |
+| DRA-65 | Forum-wide stats: DAU, new threads/posts per day | `feat/analytics-schema` |
+| DRA-66 | Per-category analytics: activity, top contributors | `feat/category-analytics` |
+| DRA-67 | Admin analytics dashboard with charts (Recharts) | `feat/analytics-dashboard` |
+| DRA-68 | Content growth report: monthly snapshot export (CSV) | `feat/analytics-export` |
+
+Epic: **DRA-42** (Phase 14 — Analytics & Insights).
 
 ---
 
@@ -104,10 +118,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-59 | Read-only REST API: categories, threads, posts | `feat/public-api` |
-| DRA-60 | API key management (generate, revoke in settings) | `feat/api-keys` |
-| DRA-61 | RSS feeds per category and site-wide | `feat/rss-feeds` |
-| DRA-62 | Webhook support: fire events on new thread/post | `feat/webhooks` |
+| DRA-69 | Read-only REST API: categories, threads, posts | `feat/public-api` |
+| DRA-70 | API key management (generate, revoke in settings) | `feat/api-keys` |
+| DRA-71 | RSS feeds per category and site-wide | `feat/rss-feeds` |
+| DRA-72 | Webhook support: fire events on new thread/post | `feat/webhooks` |
+
+Epic: **DRA-43** (Phase 15 — Public API & RSS).
 
 ---
 
@@ -117,10 +133,12 @@
 
 | Linear | Feature | Branch |
 |--------|---------|--------|
-| DRA-63 | Full Redis caching layer (categories, site settings, hot threads) | `feat/redis-cache` |
-| DRA-64 | Background job queue for emails and heavy tasks | `feat/job-queue` |
-| DRA-65 | Database index audit + slow query review | `feat/db-indexes` |
-| DRA-66 | Bundle analysis and dynamic import optimization | `feat/bundle-optimization` |
+| DRA-73 | Full Redis caching layer (categories, site settings, hot threads) | `feat/redis-cache` |
+| DRA-74 | Background job queue for emails and heavy tasks | `feat/job-queue` |
+| DRA-75 | Database index audit + slow query review | `feat/db-indexes` |
+| DRA-76 | Bundle analysis and dynamic import optimization | `feat/bundle-optimization` |
+
+Epic: **DRA-44** (Phase 16 — Performance & Scale).
 
 ---
 
