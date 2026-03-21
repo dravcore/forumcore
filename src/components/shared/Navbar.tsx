@@ -1,0 +1,44 @@
+import Link from 'next/link'
+import { MessageSquare } from 'lucide-react'
+import { buttonVariants } from '@/lib/buttonVariants'
+import { cn } from '@/lib/utils'
+
+export function Navbar() {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 font-semibold">
+          <MessageSquare className="h-5 w-5 text-primary" />
+          <span>ForumCore</span>
+        </Link>
+
+        {/* Nav Links */}
+        <nav className="hidden items-center gap-6 text-sm md:flex">
+          <Link
+            href="/"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Kategoriler
+          </Link>
+          <Link
+            href="/search"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Ara
+          </Link>
+        </nav>
+
+        {/* Auth Actions — Faz 2'de doldurulacak */}
+        <div className="flex items-center gap-2">
+          <Link href="/login" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+            Giriş Yap
+          </Link>
+          <Link href="/register" className={cn(buttonVariants({ size: 'sm' }))}>
+            Kayıt Ol
+          </Link>
+        </div>
+      </div>
+    </header>
+  )
+}
