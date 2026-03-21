@@ -42,14 +42,17 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Prisma CLI + migration için gerekli paketler (root olarak kur)
+# Prisma CLI + migration için gerekli paketler (root olarak kur, engine'ler indirilir)
 COPY package.json package-lock.json ./
-RUN npm install prisma@7.5.0 dotenv --no-save --ignore-scripts
+RUN npm install prisma@7.5.0 dotenv --no-save
 
 # Prisma schema + config + generated client
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
+
+# node_modules sahipliğini nextjs user'a ver
+RUN chown -R nextjs:nodejs /app/node_modules
 
 # Next.js standalone output
 COPY --from=builder /app/public ./public
