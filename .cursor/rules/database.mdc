@@ -1,0 +1,49 @@
+---
+description: Prisma ORM ve veritabanı kuralları
+globs: ["prisma/**", "src/lib/db.ts", "src/server/**"]
+alwaysApply: false
+---
+
+# Veritabanı Kuralları
+
+## Prisma Kullanımı
+- Prisma Client singleton: `import { db } from "@/lib/db"`
+- Asla `new PrismaClient()` kullanma
+- Migration geliştirmede: `npx prisma migrate dev --name <isim>`
+- Migration deploy'da: `npx prisma migrate deploy`
+- Schema değişiklikten sonra: `npx prisma generate`
+
+## Sorgu Kuralları
+- Sorgular `src/server/` altında fonksiyon olarak tanımla
+- Component içine doğrudan Prisma sorgusu yazma
+- `select` ile sadece gereken alanları çek (tüm modeli çekme)
+- İlişkili veri için `include` yerine mümkünse `select` içinde nested select kullan
+
+## Schema Kuralları
+- Her model `id`, `createdAt`, `updatedAt` alanlarına sahip olmalı
+- Soft delete için `deletedAt DateTime?` kullan (fiziksel silme yerine)
+- Slug alanları `@unique` olmalı
+- Enum'lar Prisma schema'da tanımla, TypeScript'te tekrar tanımlama
+
+## Örnek Sorgu Yapısı
+```ts
+// src/server/queries/threads.ts
+import { db } from "@/lib/db"
+
+export async function getThreadsByCategory(categorySlug: string, page: number) {
+  return db.thread.findMany({
+    where: { category: { slug: categorySlug } },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      createdAt: true,
+      author: { select: { username: true, avatarUrl: true } },
+      _count: { select: { posts: true } },
+    },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    skip: (page - 1) * 20,
+    take: 20,
+  })
+}
+```

@@ -1,0 +1,78 @@
+---
+description: Environment variable yönetimi ve konfigürasyon validasyonu
+globs: ["src/env.ts", "src/env.js", ".env*", "next.config.ts"]
+alwaysApply: false
+---
+
+# Environment Variable Kuralları
+
+## Temel Prensip
+
+Environment variable eksik veya yanlışsa uygulama **build time'da** hata vermeli, runtime'da değil.
+Bunun için tüm env var'lar `src/env.ts` üzerinden Zod ile doğrulanır.
+
+## src/env.ts Yapısı (@t3-oss/env-nextjs)
+
+```ts
+// src/env.ts
+import { createEnv } from "@t3-oss/env-nextjs"
+import { z } from "zod"
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.string().url(),
+    REDIS_URL: z.string().url(),
+    AUTH_SECRET: z.string().min(32),
+    MINIO_ENDPOINT: z.string(),
+    MINIO_ACCESS_KEY: z.string(),
+    MINIO_SECRET_KEY: z.string(),
+    MINIO_BUCKET: z.string(),
+  },
+  client: {
+    NEXT_PUBLIC_APP_URL: z.string().url(),
+  },
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    REDIS_URL: process.env.REDIS_URL,
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
+    MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
+    MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
+    MINIO_BUCKET: process.env.MINIO_BUCKET,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  },
+})
+```
+
+## Kullanım Kuralları
+
+```ts
+// Doğru — her zaman env.ts üzerinden eriş
+import { env } from "@/env"
+const db = new PrismaClient({ datasourceUrl: env.DATABASE_URL })
+
+// Yanlış — direkt process.env kullanma
+const db = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL })
+```
+
+## .env Dosyaları
+
+| Dosya | Amaç | Repoya girer mi? |
+|-------|------|-----------------|
+| `.env.example` | Hangi değişkenlerin gerektiğini gösterir, değer içermez | ✅ Evet |
+| `.env` | Lokal geliştirme değerleri | ❌ Hayır |
+| `.env.test` | Test ortamı değerleri | ❌ Hayır |
+
+`.env.example` her zaman güncel tutulmalı — yeni bir env var eklendiğinde buraya da ekle.
+
+## Coolify'da Yönetim
+
+- Tüm production değerleri Coolify UI'dan set edilir
+- Deploy pipeline `src/env.ts` validasyonunu build sırasında çalıştırır
+- Eksik değer varsa build başarısız olur, kötü config production'a ulaşmaz
+
+## Güvenlik
+
+- `NEXT_PUBLIC_` prefix'i olmayan değişkenler client bundle'a girmez
+- Secret'ları (AUTH_SECRET, MINIO_SECRET_KEY vb.) asla `NEXT_PUBLIC_` yapma
+- `.env` dosyasını `.gitignore`'a ekle (Next.js varsayılan olarak ekler)

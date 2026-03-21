@@ -1,0 +1,39 @@
+---
+description: ForumCore proje genel kuralları — stack, mimari, kodlama standartları
+globs:
+alwaysApply: true
+---
+
+# ForumCore Proje Kuralları
+
+## Stack
+- Next.js 16 App Router (`src/` dizini, `@/*` alias)
+- TypeScript strict mode
+- Tailwind CSS v4 + shadcn/ui
+- PostgreSQL + Prisma ORM
+- Better Auth
+- MinIO (storage), Redis (cache) — ikisi de Coolify'da
+- Deploy: Coolify (self-hosted), `output: "standalone"` zorunlu
+
+## Mimari Kurallar
+- Server Components varsayılan; `"use client"` yalnızca gerektiğinde
+- Veri çekme Server Components veya Server Actions (`"use server"`) ile
+- API route'ları (`/api/`) yalnızca SSE, webhook ve harici servis entegrasyonu için
+- İş mantığı `src/server/` altında tutulur, direkt component içine yazılmaz
+
+## Klasör Yapısı
+```
+src/
+├── app/          # Sayfalar ve API route'ları
+├── components/   # Paylaşılan UI bileşenleri
+│   └── ui/       # shadcn/ui (elle düzenleme, `npx shadcn add` ile ekle)
+├── lib/          # Singleton'lar: db.ts, auth.ts, utils.ts
+├── server/       # Server-only: queries, actions, validations
+└── types/        # Paylaşılan TypeScript tipleri
+```
+
+## Kesinlikle Yapılmayacaklar
+- Vercel-specific özellik kullanma (Edge Runtime, ISR, `vercel.json` vb.)
+- `new PrismaClient()` — sadece `src/lib/db.ts` singleton'ı kullan
+- `.env` dosyasını repoya commit etme
+- `src/components/ui/` altındaki shadcn dosyalarını elle düzenleme

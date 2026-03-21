@@ -1,0 +1,72 @@
+---
+description: UI/UX tasarım kuralları — görsel hiyerarşi, erişilebilirlik, kullanıcı deneyimi
+globs: ["src/components/**", "src/app/**/*.tsx"]
+alwaysApply: false
+---
+
+# UI/UX Tasarım Kuralları
+
+Tüm UI kodu yazılırken deneyimli bir UI/UX tasarımcısı gibi düşün. Fonksiyonellik kadar görsel kalite, hiyerarşi ve kullanıcı deneyimi de birinci önceliktir.
+
+## Temel Prensipler
+
+- **Görsel hiyerarşi:** Kullanıcının gözü önemli elemanlara önce gitmelidir. Boyut, renk ve boşluk ile yönlendir
+- **Tutarlılık:** Benzer elemanlar benzer görünmeli. Spacing, renk, tipografi tutarlı olmalı
+- **Boşluk (whitespace):** Sıkışık UI yazma. Yeterli padding/margin kullan; nefes alan tasarım yap
+- **Geri bildirim:** Her kullanıcı aksiyonunun görsel karşılığı olmalı (hover, focus, loading, success, error)
+- **Mobil öncelikli:** Tüm bileşenler mobil uyumlu olmalı, breakpoint'ler `sm → md → lg` sırası ile
+
+## Tipografi
+
+- Başlıklar için font-weight en az `font-semibold`
+- Body text `text-sm` ile `text-base` arası, yeterli `leading` (satır yüksekliği) ile
+- İkincil/yardımcı metinler için `text-muted-foreground` kullan (ham gri değil)
+- Metin hiyerarşisi: h1 > h2 > h3, her seviye belirgin farklılık taşımalı
+
+## Renk ve Kontrast
+
+- shadcn/ui token'larını kullan (`background`, `foreground`, `muted`, `accent`, `destructive` vb.)
+- Ham hex renk veya `text-gray-*` gibi sabit renkler kullanma — tema uyumluluğu bozulur
+- Hata durumları için `destructive`, başarı için `text-green-600 dark:text-green-400` gibi dark mode uyumlu renkler
+
+## Etkileşim Durumları
+
+Her interaktif eleman şu durumları taşımalı:
+- `hover:` — belirgin ama abartısız
+- `focus-visible:` — erişilebilirlik için `ring` ile
+- `disabled:` — `opacity-50 cursor-not-allowed`
+- Loading: skeleton veya spinner, içerik boş bırakılmaz
+
+## Boşluk Sistemi
+
+- Component iç padding: `p-3` ile `p-6` arası
+- Element arası gap: `gap-2` ile `gap-4` arası (listeler için `space-y-2`)
+- Sayfa container: `max-w-4xl mx-auto px-4`
+- Section arası: `py-8` veya `mb-8`
+
+## Form Tasarımı
+
+- Label her zaman input'un üstünde
+- Hata mesajı input'un altında, `text-destructive text-sm`
+- Zorunlu alanlar `*` ile işaretlenmeli
+- Submit butonu loading state'inde `disabled` + spinner göstermeli
+
+## Erişilebilirlik
+
+- Tüm interaktif elemanlara `aria-label` veya görünür etiket
+- Sadece ikondan oluşan butonlara `aria-label` zorunlu
+- Renk bilgiyi tek başına taşımamalı (ikonla destekle)
+- `<button>` yerine `<div onClick>` kullanma
+
+## Boş Durumlar (Empty States)
+
+- Veri yokken boş liste bırakma — açıklayıcı bir mesaj ve aksiyon butonu göster
+- Skeleton loader kullan, ani içerik çıkması yerine kademeli geçiş
+
+## Kötü Pratikler
+
+- Çok fazla farklı renk kullanmak
+- Tutarsız border-radius (ya hep `rounded-md` ya hep `rounded-lg`)
+- Küçük ekranda taşan sabit genişlik (`w-[400px]` gibi)
+- Bütün text'i büyük harf yazmak
+- Alert/toast göstermek yerine satır içi hata mesajı vermekten kaçınmak

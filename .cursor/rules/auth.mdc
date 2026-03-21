@@ -1,0 +1,33 @@
+---
+description: Better Auth kullanım kuralları — session okuma, route koruma
+globs: ["src/lib/auth*", "src/app/**", "src/middleware.ts"]
+alwaysApply: false
+---
+
+# Auth Kuralları
+
+## Better Auth Yapısı
+- Auth config: `src/lib/auth.ts` (server)
+- Auth client: `src/lib/auth-client.ts` (client)
+- API route: `src/app/api/auth/[...all]/route.ts`
+
+## Session Okuma
+```ts
+// Server Component içinde
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+const session = await auth.api.getSession({ headers: await headers() })
+
+// Client Component içinde
+import { authClient } from "@/lib/auth-client"
+const { data: session } = authClient.useSession()
+```
+
+## Route Koruma
+- `src/middleware.ts` ile korumalı path'leri tanımla
+- Server Component'te session yoksa `redirect("/login")`
+- Rol kontrolü server tarafında yap, client'ta sadece UI için kullan
+
+## Yetkisiz İşlem Engelleme
+- Her Server Action başında session + rol kontrolü yap
+- Yetki yoksa `throw new Error("Unauthorized")` değil, `redirect` veya `notFound()`

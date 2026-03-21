@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ForumCore
 
-## Getting Started
+Self-hosted, modern forum platformu. Next.js 16 + TypeScript + PostgreSQL + Better Auth stack ile Coolify üzerinde çalışır.
 
-First, run the development server:
+## Stack
+
+| Katman | Teknoloji |
+|--------|-----------|
+| Framework | Next.js 16 App Router |
+| Dil | TypeScript (strict) |
+| Stil | Tailwind CSS v4 + shadcn/ui |
+| Veritabanı | PostgreSQL + Prisma ORM |
+| Auth | Better Auth |
+| Storage | MinIO |
+| Cache | Redis |
+| Deploy | Coolify (self-hosted) |
+
+## Gereksinimler
+
+- Node.js 20+
+- PostgreSQL 16+
+- Redis 7+
+
+## Kurulum
+
+### 1. Repoyu klonla
+
+```bash
+git clone <repo-url>
+cd forumcore
+npm install
+```
+
+### 2. Environment variable'ları ayarla
+
+```bash
+cp .env.example .env
+```
+
+`.env` dosyasını düzenle ve gerekli değerleri gir.
+
+### 3. Veritabanını hazırla
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+### 4. Geliştirme sunucusunu başlat
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) adresinde çalışır.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Kullanışlı Komutlar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev          # Geliştirme sunucusu
+npm run build        # Production build
+npm run lint         # ESLint
+npm run typecheck    # TypeScript kontrol
 
-## Learn More
+npx prisma studio    # DB görsel arayüzü
+npx prisma migrate dev --name <isim>   # Yeni migration
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy (Coolify)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Coolify'da yeni bir Next.js servisi oluştur (Nixpacks)
+2. PostgreSQL ve Redis servislerini Coolify'dan başlat
+3. Environment variable'ları Coolify UI'dan tanımla
+4. GitHub reposunu bağla — push tetiklemede otomatik deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Deploy detayları için `CONTRIBUTING.md` dosyasına bak.
 
-## Deploy on Vercel
+## Proje Yapısı
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Detaylı yapı için [`STRUCTURE.md`](./STRUCTURE.md) dosyasına bak.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Katkıda Bulunmak
+
+Geliştirme süreci, branch stratejisi ve kurallar için [`CONTRIBUTING.md`](./CONTRIBUTING.md) dosyasına bak.
+
+## Güvenlik
+
+Güvenlik açığı bildirmek için [`SECURITY.md`](./SECURITY.md) dosyasına bak.

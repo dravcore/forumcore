@@ -1,0 +1,85 @@
+---
+description: Git workflow kuralları — branch stratejisi, commit mesajları, PR süreci
+globs:
+alwaysApply: true
+---
+
+# Git Workflow Kuralları
+
+## Temel Kural
+
+`main` branch'e **asla** direkt commit yapılmaz. Her değişiklik bir branch üzerinde geliştirilir ve PR ile main'e alınır.
+
+## Branch İsimlendirme
+
+```
+<tip>/<linear-id>-<kısa-açıklama>
+
+feat/dra-14-kategori-crud
+feat/dra-15-thread-listeleme
+fix/dra-22-mention-bildirim-hatası
+chore/dra-8-coolify-deploy-setup
+refactor/dra-16-post-pagination
+```
+
+| Prefix | Kullanım |
+|--------|----------|
+| `feat/` | Yeni özellik |
+| `fix/` | Bug düzeltme |
+| `chore/` | Konfigürasyon, tooling, bağımlılık güncellemesi |
+| `refactor/` | Davranış değişmeden kod iyileştirme |
+| `docs/` | Sadece dokümantasyon değişikliği |
+
+## Commit Mesajı Formatı (Conventional Commits)
+
+```
+<tip>(<kapsam>): <açıklama>
+
+feat(threads): add pagination to thread list
+fix(auth): redirect to login when session expires
+chore(deps): update prisma to 6.x
+refactor(queries): extract thread queries to separate file
+```
+
+### Tip Listesi
+
+| Tip | Ne Zaman |
+|-----|----------|
+| `feat` | Yeni özellik |
+| `fix` | Bug düzeltme |
+| `chore` | Build, config, bağımlılık |
+| `refactor` | Yeniden yapılandırma |
+| `style` | Sadece format/stil (davranış yok) |
+| `test` | Test ekleme/düzenleme |
+| `docs` | Dokümantasyon |
+| `perf` | Performans iyileştirmesi |
+
+### Kapsam (scope) Örnekleri
+
+`auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`, `api`
+
+## Çoklu Agent ile Çalışma (Claude Code + Cursor)
+
+Aynı anda iki agent çalışırken çakışmayı önlemek için:
+
+- **Her agent farklı branch'te çalışır** — asla aynı branch'te eş zamanlı çalışma
+- Yeni bir göreve başlamadan önce `git status` ile branch durumunu kontrol et
+- Commit'ten önce `git pull origin main --rebase` ile güncel kal
+- Aynı dosyayı iki agent aynı anda düzenliyorsa → önce birini bitir, merge et, sonra diğeri başlasın
+
+## PR Kuralları
+
+- PR başlığı commit formatında: `feat(threads): add pagination`
+- PR açıklamasında Linear issue ID'si: `Closes DRA-15`
+- Main'e merge etmeden önce:
+  - [ ] Build alınıyor (`npm run build`)
+  - [ ] TypeScript hatası yok (`tsc --noEmit`)
+  - [ ] Varsa testler geçiyor
+
+## Yasaklanan Şeyler
+
+- `main` branch'e direkt push
+- `git push --force` (main'e)
+- Commit içinde `.env` dosyası
+- `console.log` içeren commit (geliştirme logları temizlenmeli)
+- `TODO:` yorum içeren commit (Linear issue aç, commit'e bırakma)

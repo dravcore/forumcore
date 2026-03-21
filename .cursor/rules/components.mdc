@@ -1,0 +1,46 @@
+---
+description: React bileşen yazım kuralları — Server/Client ayrımı, shadcn/ui kullanımı
+globs: ["src/components/**", "src/app/**/*.tsx"]
+alwaysApply: false
+---
+
+# Bileşen Kuralları
+
+## Server vs Client
+- Varsayılan olarak Server Component yaz
+- `"use client"` direktifi yalnızca şu durumlarda:
+  - `useState`, `useEffect`, `useRef` gibi hook kullanımı
+  - Event handler (`onClick`, `onChange` vb.)
+  - Browser API erişimi
+  - Context provider
+
+## Bileşen Organizasyonu
+- Sayfa bileşenleri: `src/app/` altında `page.tsx`
+- Paylaşılan bileşenler: `src/components/` altında
+- shadcn/ui bileşenleri: `src/components/ui/` — elle düzenleme yapma
+- Büyük sayfalara ait alt bileşenler: `src/app/[route]/_components/` altında
+
+## Form ve Validasyon
+- Formlar Server Actions ile (`"use server"`)
+- Validasyon Zod ile, schema `src/server/validations/` altında
+- Client-side anlık validasyon için `react-hook-form` + `zodResolver`
+
+## Stil
+- Tailwind CSS sınıfları kullan, inline style yazma
+- Bileşen varyantları için `cn()` utility (`src/lib/utils.ts`)
+- shadcn/ui'dan bileşen eklemek için: `npx shadcn add <bileşen>`
+
+## TypeScript
+- Props için ayrı interface tanımla, inline type kullanma
+- `React.FC` kullanma, direkt fonksiyon tanımı yap
+```ts
+// Doğru
+interface ThreadCardProps {
+  thread: Thread
+  showCategory?: boolean
+}
+export function ThreadCard({ thread, showCategory = false }: ThreadCardProps) {}
+
+// Yanlış
+const ThreadCard: React.FC<{ thread: Thread }> = ({ thread }) => {}
+```

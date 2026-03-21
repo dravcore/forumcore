@@ -1,0 +1,92 @@
+---
+description: Güvenlik kuralları — XSS, CSRF, input sanitization, yetkilendirme, dosya upload
+globs: ["src/**"]
+alwaysApply: true
+---
+
+# Güvenlik Kuralları
+
+Forum gibi kullanıcı içeriği barındıran bir platformda güvenlik birinci önceliktir. Aşağıdaki kurallar her zaman uygulanır.
+
+## Input Validasyonu
+
+- Her Server Action ve API route'un başında Zod ile input doğrula
+- Kullanıcıdan gelen veriyi **asla** doğrulamadan kullanma
+- Şema `src/server/validations/` altında tanımla, action içine gömme
+
+```ts
+// Her server action bu yapıda başlamalı
+const schema = z.object({ content: z.string().min(1).max(10000) })
+const parsed = schema.safeParse(input)
+if (!parsed.success) return { error: "Geçersiz veri" }
+```
+
+## XSS Koruması
+
+- Kullanıcı içeriğini HTML olarak render etme — `dangerouslySetInnerHTML` kullanma
+- Markdown render için `rehype-sanitize` ile sanitize et (whitelist yaklaşımı)
+- URL alanlarında `javascript:` protokolünü engelle
+- Rich text editörden gelen HTML'i server'da `DOMPurify` veya `sanitize-html` ile temizle
+
+## Yetkilendirme (Authorization)
+
+- Her Server Action'ın başında session kontrolü yap
+- **Authentication ≠ Authorization** — oturum açık olması yetmez, rolü de kontrol et
+- Kaynak sahipliğini doğrula: kullanıcı yalnızca kendi post/thread'ini düzenleyebilir
+
+```ts
+// Her korumalı action bu yapıda olmalı
+const session = await requireAuth() // session yoksa redirect("/login")
+const post = await db.post.findUniqueOrThrow({ where: { id } })
+if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
+  throw new Error("Unauthorized")
+}
+```
+
+## Prisma / SQL Güvenliği
+
+- Prisma ORM parametreli sorgu kullandığı için SQL injection riski düşük, ama `$queryRaw` kullanılacaksa `Prisma.sql` tagged template kullan
+- `$queryRaw` içine string interpolasyonu (`${userInput}`) asla koyma
+
+```ts
+// Doğru
+await db.$queryRaw(Prisma.sql`SELECT * FROM "User" WHERE email = ${email}`)
+// Yanlış
+await db.$queryRaw`SELECT * FROM "User" WHERE email = '${email}'`
+```
+
+## Dosya Upload Güvenliği
+
+- Yüklenen dosyanın MIME type'ını hem client hem server'da kontrol et
+- Dosya boyutunu server'da sınırla (avatar için max 2MB)
+- Dosya adını kullanıcıdan alma — UUID ile yeniden adlandır
+- MinIO bucket'ı public read / private write olarak yapılandır
+- Upload edilen dosyayı doğrudan serve etme, signed URL kullan
+
+## Rate Limiting
+
+- Auth endpoint'lerine (login, register) mutlaka rate limiting uygula
+- Post/thread oluşturma aksiyonlarına rate limiting uygula
+- Redis tabanlı rate limiter kullan (`src/lib/rate-limit.ts`)
+
+## Environment Variables
+
+- Secret'ları kod içine asla yazma (API key, DB password vb.)
+- `process.env.X` kullanmadan önce `src/env.ts` üzerinden doğrula (zod ile)
+- Client bundle'a gönderilecek env var'lar yalnızca `NEXT_PUBLIC_` prefix'li olmalı
+- Hassas değerleri log'a basma
+
+## HTTP Güvenlik Başlıkları
+
+`next.config.ts` içinde şu header'ları tanımla:
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy`
+
+## Genel
+
+- Hata mesajlarında iç detayları kullanıcıya gösterme (stack trace, DB hatası vb.)
+- Admin/moderatör işlemlerini ayrı bir audit log'a yaz
+- Kullanıcı şifrelerini loglama
+- Dependency'leri düzenli güncelle, `npm audit` çıktısını takip et

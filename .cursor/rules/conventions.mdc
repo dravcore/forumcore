@@ -1,0 +1,101 @@
+---
+description: İsimlendirme ve dosya yapısı kuralları — camelCase, dosya adları, fonksiyon isimleri
+globs: ["src/**"]
+alwaysApply: true
+---
+
+# İsimlendirme ve Dosya Yapısı Kuralları
+
+## Dosya ve Klasör Adları
+
+| Tür | Format | Örnek |
+|-----|--------|-------|
+| Bileşen dosyası | PascalCase | `ThreadCard.tsx`, `UserAvatar.tsx` |
+| Sayfa/layout | kebab-case (Next.js zorunlu) | `page.tsx`, `not-found.tsx` |
+| Server action | camelCase | `threadActions.ts`, `postActions.ts` |
+| Query dosyası | camelCase | `threadQueries.ts`, `userQueries.ts` |
+| Util/lib | camelCase | `formatDate.ts`, `slugify.ts` |
+| Type dosyası | camelCase | `thread.types.ts` |
+| Hook | camelCase, `use` prefix | `useSession.ts`, `useInfiniteScroll.ts` |
+
+## Değişken ve Fonksiyon İsimleri
+
+- Değişkenler ve fonksiyonlar: `camelCase`
+- Bileşenler ve tipler/interface'ler: `PascalCase`
+- Sabitler (değişmez değerler): `UPPER_SNAKE_CASE`
+- Boolean değişkenler `is`, `has`, `can`, `should` ile başlamalı: `isLoading`, `hasPermission`
+- Event handler'lar `handle` prefix'i ile: `handleSubmit`, `handleDelete`
+
+## Server Action İsimlendirme
+
+Tüm server action'lar `fiil + Model` formatında:
+
+```ts
+// src/server/actions/threadActions.ts
+export async function createThread(...) {}
+export async function updateThread(...) {}
+export async function deleteThread(...) {}
+export async function pinThread(...) {}
+export async function lockThread(...) {}
+```
+
+## Query Fonksiyon İsimlendirme
+
+```ts
+// src/server/queries/threadQueries.ts
+export async function getThreadBySlug(...) {}
+export async function getThreadsByCategory(...) {}
+export async function getThreadCount(...) {}
+```
+
+## Bileşen Prop İsimlendirme
+
+- Callback prop'lar `on` prefix'i ile: `onSubmit`, `onDelete`, `onClose`
+- Render prop'lar `render` prefix'i ile: `renderHeader`
+- Boolean prop'lar `is/has/can` ile: `isLoading`, `isDisabled`
+
+## Klasör Yapısı Kuralları
+
+```
+src/
+├── app/
+│   ├── (auth)/              # Route group — auth sayfaları
+│   │   ├── login/
+│   │   └── register/
+│   ├── (forum)/             # Route group — forum sayfaları
+│   │   ├── c/[slug]/        # Kategori sayfası
+│   │   └── t/[slug]/        # Thread sayfası
+│   └── admin/               # Admin paneli
+│       └── _components/     # Sadece admin'e ait bileşenler
+├── components/
+│   ├── ui/                  # shadcn/ui (dokunma)
+│   ├── forum/               # Forum'a özel bileşenler
+│   └── shared/              # Genel paylaşılan bileşenler
+├── server/
+│   ├── actions/             # Server Actions (mutation)
+│   ├── queries/             # DB okuma fonksiyonları
+│   └── validations/         # Zod şemaları
+└── lib/
+    ├── db.ts                # Prisma singleton
+    ├── auth.ts              # Better Auth config
+    ├── env.ts               # Environment validasyonu
+    └── utils.ts             # cn() ve genel utils
+```
+
+## Import Sırası
+
+```ts
+// 1. React/Next.js
+import { Suspense } from "react"
+import { notFound } from "next/navigation"
+
+// 2. Dış paketler
+import { z } from "zod"
+
+// 3. İç modüller (@/ alias ile)
+import { db } from "@/lib/db"
+import { ThreadCard } from "@/components/forum/ThreadCard"
+
+// 4. Tip import'ları
+import type { Thread } from "@/types/thread.types"
+```

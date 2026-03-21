@@ -1,0 +1,89 @@
+---
+description: Hata yönetimi kuralları — Server Actions, API routes, kullanıcı geri bildirimi
+globs: ["src/**"]
+alwaysApply: false
+---
+
+# Hata Yönetimi Kuralları
+
+## Server Action Dönüş Yapısı
+
+Server Action'lar exception fırlatmak yerine yapılandırılmış sonuç döndürmeli.
+
+```ts
+// Standart dönüş tipi
+type ActionResult<T = void> =
+  | { success: true; data: T }
+  | { success: false; error: string }
+
+// Örnek action
+export async function createThread(input: unknown): Promise<ActionResult<{ slug: string }>> {
+  try {
+    const parsed = schema.safeParse(input)
+    if (!parsed.success) return { success: false, error: "Geçersiz veri" }
+
+    const thread = await db.thread.create({ ... })
+    return { success: true, data: { slug: thread.slug } }
+  } catch (e) {
+    console.error("[createThread]", e)
+    return { success: false, error: "Bir hata oluştu, lütfen tekrar deneyin" }
+  }
+}
+```
+
+## Hata Mesajları
+
+- Kullanıcıya **iç hata detayları gösterme** (DB hatası, stack trace vb.)
+- Kullanıcıya gösterilen mesajlar Türkçe ve anlaşılır olmalı
+- Geliştirici log'ları `console.error("[actionName]", error)` formatında
+
+## Next.js Hata Sınırları
+
+- Her route segment için `error.tsx` tanımla
+- Global hata için `src/app/error.tsx`
+- Not found durumları için `src/app/not-found.tsx`
+- `error.tsx` "use client" olmak zorunda
+
+```tsx
+// src/app/error.tsx
+"use client"
+export default function GlobalError({ reset }: { reset: () => void }) {
+  return (
+    <div>
+      <h2>Bir şeyler ters gitti</h2>
+      <button onClick={reset}>Tekrar dene</button>
+    </div>
+  )
+}
+```
+
+## notFound ve redirect
+
+- Kaynak bulunamazsa `notFound()` — 404 sayfasını gösterir
+- Yetki yoksa `redirect("/login")` — 401/403 için exception fırlatma
+- `notFound()` ve `redirect()` try/catch içine alma — Next.js bunları özel exception olarak fırlatır
+
+```ts
+// Doğru
+const thread = await db.thread.findUnique({ where: { slug } })
+if (!thread) notFound()
+
+// Yanlış
+try {
+  const thread = await db.thread.findUniqueOrThrow(...)
+} catch {
+  notFound() // try/catch redirect/notFound'u yutar
+}
+```
+
+## Form Hataları
+
+- Server Action hatalarını `useActionState` ile yakala
+- Her field için ayrı hata mesajı gösterebilecek yapı kur
+- Toast yalnızca genel başarı/hata bildirimleri için, field hatası için inline kullan
+
+## Loglama
+
+- `console.log` production'da bırakma — sadece `console.error` ve `console.warn`
+- Ileride Sentry/Betterstack entegrasyonu için logları `src/lib/logger.ts` üzerinden geç
+- Hassas veri (şifre, token, kişisel bilgi) loglama
