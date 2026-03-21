@@ -11,7 +11,7 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN NODE_ENV=development npm ci
 
 # ─── Builder: uygulamayı derle ───────────────────────────────────────────────
 FROM base AS builder
