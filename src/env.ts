@@ -16,6 +16,8 @@ export const env = createEnv({
     MINIO_ACCESS_KEY: z.string().default('minioadmin'),
     MINIO_SECRET_KEY: z.string().default('minioadmin'),
     MINIO_BUCKET: z.string().default('forumcore'),
+    RESEND_API_KEY: z.string().optional(),
+    EMAIL_FROM: z.string().default('ForumCore <noreply@forum.dravcore.com>'),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
@@ -35,5 +37,7 @@ export const env = createEnv({
     MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
     MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
     MINIO_BUCKET: process.env.MINIO_BUCKET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
   },
 })

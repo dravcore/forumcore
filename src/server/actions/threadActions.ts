@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { requireAuth, requireModerator } from '@/lib/session'
 import { slugify } from '@/lib/slugify'
 import { createThreadSchema } from '@/server/validations/threadValidations'
+import { rateLimit } from '@/lib/rateLimit'
 
 async function generateUniqueSlug(title: string): Promise<string> {
   const base = slugify(title)
@@ -20,6 +21,10 @@ async function generateUniqueSlug(title: string): Promise<string> {
 
 export async function createThread(categorySlug: string, input: unknown) {
   const session = await requireAuth()
+
+  if (!rateLimit(`thread:${session.user.id}`, 3, 60_000)) {
+    return { success: false as const, error: 'Çok fazla konu açtınız. Lütfen bekleyin.' }
+  }
 
   const parsed = createThreadSchema.safeParse(input)
   if (!parsed.success) return { success: false as const, error: 'Geçersiz veri.' }

@@ -5,9 +5,14 @@ import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/session'
 import { postContentSchema } from '@/server/validations/postValidations'
 import { createNotification } from './notificationActions'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
+
+  if (!rateLimit(`post:${session.user.id}`, 5, 60_000)) {
+    return { success: false as const, error: 'Çok fazla yanıt gönderdiniz. Lütfen bekleyin.' }
+  }
 
   const parsed = postContentSchema.safeParse(input)
   if (!parsed.success) return { success: false as const, error: 'Geçersiz veri.' }

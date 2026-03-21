@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/shared/Navbar'
+import { env } from '@/env'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,6 +20,19 @@ export const metadata: Metadata = {
     template: '%s | ForumCore',
   },
   description: 'Modern, self-hosted forum platformu.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  openGraph: {
+    type: 'website',
+    siteName: 'ForumCore',
+    title: 'ForumCore',
+    description: 'Modern, self-hosted forum platformu.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'ForumCore',
+    description: 'Modern, self-hosted forum platformu.',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({

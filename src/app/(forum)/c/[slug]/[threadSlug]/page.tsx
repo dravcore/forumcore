@@ -20,7 +20,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { threadSlug } = await params
   const thread = await getThreadBySlug(threadSlug)
   if (!thread) return { title: 'Konu bulunamadı' }
-  return { title: thread.title }
+  return {
+    title: thread.title,
+    openGraph: { title: thread.title, type: 'article' },
+    twitter: { card: 'summary', title: thread.title },
+  }
 }
 
 export default async function ThreadPage({ params, searchParams }: Props) {

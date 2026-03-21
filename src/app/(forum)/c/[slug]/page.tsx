@@ -18,7 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const category = await getCategoryBySlug(slug)
   if (!category) return { title: 'Kategori bulunamadı' }
-  return { title: category.name }
+  return {
+    title: category.name,
+    description: category.description ?? undefined,
+    openGraph: { title: category.name, description: category.description ?? undefined },
+  }
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
