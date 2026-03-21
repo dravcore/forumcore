@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/session'
+import { createNotification } from './notificationActions'
 
 export async function toggleReaction(postId: string, type: string = 'LIKE') {
   const session = await requireAuth()
@@ -21,6 +22,18 @@ export async function toggleReaction(postId: string, type: string = 'LIKE') {
   await db.reaction.create({
     data: { postId, userId: session.user.id, type },
   })
+
+  // Notify post author
+  const postData = await db.post.findUnique({ where: { id: postId }, select: { authorId: true, threadId: true } })
+  if (postData) {
+    void createNotification({
+      type: 'REACTION',
+      userId: postData.authorId,
+      actorId: session.user.id,
+      threadId: postData.threadId,
+      postId,
+    })
+  }
 
   const count = await db.reaction.count({ where: { postId, type } })
   revalidatePath('/')

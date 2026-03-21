@@ -17,6 +17,12 @@ enum Role {
   MEMBER
 }
 
+enum NotificationType {
+  REPLY
+  MENTION
+  REACTION
+}
+
 // =============================================================================
 // Auth — Better Auth required models
 // =============================================================================
@@ -47,7 +53,8 @@ model User {
   threads       Thread[]
   posts         Post[]
   reactions     Reaction[]
-  reports       Report[]   @relation("reports_filed")
+  reports       Report[]        @relation("reports_filed")
+  notifications Notification[]  @relation("notifications_received")
 
   @@map("users")
 }
@@ -199,4 +206,23 @@ model Report {
   @@index([targetType, targetId])
   @@index([resolvedAt])
   @@map("reports")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // Context references
+  threadId  String?
+  postId    String?
+  actorId   String?  // who triggered the notification
+
+  userId    String
+  user      User     @relation("notifications_received", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
 }

@@ -6,6 +6,7 @@ import { LogOut, User } from 'lucide-react'
 import { useSession, signOut } from '@/lib/auth-client'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
+import { NotificationBell } from './NotificationBell'
 
 export function NavbarUser() {
   const { data: session, isPending } = useSession()
@@ -24,6 +25,7 @@ export function NavbarUser() {
   if (session) {
     return (
       <div className="flex items-center gap-2">
+        <NotificationBell initialCount={0} />
         <Link
           href={`/u/${session.user.name}`}
           className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"

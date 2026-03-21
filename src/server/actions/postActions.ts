@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/session'
 import { postContentSchema } from '@/server/validations/postValidations'
+import { createNotification } from './notificationActions'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
@@ -28,6 +29,36 @@ export async function createPost(threadId: string, categorySlug: string, input: 
     where: { id: threadId },
     data: { updatedAt: new Date() },
   })
+
+  // Notify thread author on reply
+  void createNotification({
+    type: 'REPLY',
+    userId: thread.authorId,
+    actorId: session.user.id,
+    threadId: thread.id,
+    postId: post.id,
+  })
+
+  // Notify mentioned users (@username)
+  const mentionRegex = /@(\w+)/g
+  const mentions = [...parsed.data.content.matchAll(mentionRegex)].map((m) => m[1])
+  if (mentions.length > 0) {
+    const mentionedUsers = await db.user.findMany({
+      where: { username: { in: mentions } },
+      select: { id: true },
+    })
+    await Promise.all(
+      mentionedUsers.map((u) =>
+        createNotification({
+          type: 'MENTION',
+          userId: u.id,
+          actorId: session.user.id,
+          threadId: thread.id,
+          postId: post.id,
+        })
+      )
+    )
+  }
 
   revalidatePath(`/c/${categorySlug}/${thread.slug}`)
   return { success: true as const, post }
