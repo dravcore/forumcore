@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js build output
+.next
+out
+
+# Prisma generated (container içinde üretilir)
+src/generated
+
+# Environment files (asla image'a koyma)
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage
+__tests__
+*.test.ts
+*.spec.ts
+playwright-report
+test-results
+
+# Docs
+*.md
+!prisma/schema.prisma
