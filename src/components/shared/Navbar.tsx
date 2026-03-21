@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
-import { buttonVariants } from '@/lib/buttonVariants'
-import { cn } from '@/lib/utils'
+import { NavbarUser } from './NavbarUser'
 
 export function Navbar() {
   return (
@@ -29,15 +28,8 @@ export function Navbar() {
           </Link>
         </nav>
 
-        {/* Auth Actions — Faz 2'de doldurulacak */}
-        <div className="flex items-center gap-2">
-          <Link href="/login" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
-            Giriş Yap
-          </Link>
-          <Link href="/register" className={cn(buttonVariants({ size: 'sm' }))}>
-            Kayıt Ol
-          </Link>
-        </div>
+        {/* Auth — session durumuna göre NavbarUser render eder */}
+        <NavbarUser />
       </div>
     </header>
   )
