@@ -1,11 +1,11 @@
 # =============================================================================
 # ForumCore — Multi-stage Dockerfile (Next.js standalone output)
-# Coolify: "Dockerfile" build pack seç, port 3000
+# Coolify: select "Dockerfile" build pack, port 3000
 # =============================================================================
 
 FROM node:20-alpine AS base
 
-# ─── Deps: sadece bağımlılıkları kur ────────────────────────────────────────
+# ─── Deps: install dependencies only ────────────────────────────────────────
 FROM base AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -13,7 +13,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN NODE_ENV=development npm ci
 
-# ─── Builder: uygulamayı derle ───────────────────────────────────────────────
+# ─── Builder: compile the application ───────────────────────────────────────
 FROM base AS builder
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -21,17 +21,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Prisma Client üret (DB bağlantısı gerekmez)
+# Generate Prisma Client (no DB connection needed)
 RUN npx prisma generate
 
 # Next.js standalone build
 ENV NEXT_TELEMETRY_DISABLED=1
-# Build-time'da gerçek DB gerekmez — placeholder değerler
+# No real DB needed at build time — placeholder values
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 ENV BETTER_AUTH_SECRET="build-time-placeholder-secret-min-32-chars"
 RUN npm run build
 
-# ─── Runner: sadece çalıştırmak için gerekenler ──────────────────────────────
+# ─── Runner: only what is needed to run the app ─────────────────────────────
 FROM base AS runner
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -42,7 +42,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Prisma CLI + migration için gerekli paketler (root olarak kur, engine'ler indirilir)
+# Packages required for Prisma CLI + migrations (install as root so engines are downloaded)
 COPY package.json package-lock.json ./
 RUN npm install prisma@7.5.0 dotenv --no-save
 
@@ -51,7 +51,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
 
-# node_modules sahipliğini nextjs user'a ver
+# Give ownership of node_modules to the nextjs user
 RUN chown -R nextjs:nodejs /app/node_modules
 
 # Next.js standalone output

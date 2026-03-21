@@ -1,6 +1,6 @@
 #!/bin/sh
 # ForumCore startup script
-# Deploy sırasında DB migration'ları çalıştırır, sonra uygulamayı başlatır.
+# Runs DB migrations on deploy, then starts the application.
 
 set -e
 
