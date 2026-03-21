@@ -74,6 +74,9 @@ export default async function AdminUsersPage({ searchParams }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <Link href={`/admin/users/${user.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+                  Düzenle
+                </Link>
                 <UserRoleSelect userId={user.id} currentRole={user.role} />
                 <BanButton userId={user.id} isBanned={!!user.bannedAt} />
               </div>

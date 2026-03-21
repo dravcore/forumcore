@@ -44,6 +44,29 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
         </div>
       )}
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="name">Ad Soyad</Label>
+          <Input id="name" placeholder="Adın Soyadın" {...register('name')} />
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="username">Kullanıcı Adı</Label>
+          <div className="flex items-center">
+            <span className="flex h-9 items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground">@</span>
+            <Input id="username" className="rounded-l-none" placeholder="kullanici_adi" {...register('username')} />
+          </div>
+          {errors.username && <p className="text-xs text-destructive">{errors.username.message}</p>}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" placeholder="ornek@email.com" {...register('email')} />
+        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+      </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="bio">Bio <span className="text-muted-foreground">(opsiyonel)</span></Label>
         <Textarea id="bio" placeholder="Kendinden kısaca bahset..." rows={3} className="resize-none" {...register('bio')} />
@@ -56,19 +79,21 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
         {errors.websiteUrl && <p className="text-xs text-destructive">{errors.websiteUrl.message}</p>}
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="twitterHandle">Twitter / X Kullanıcı Adı</Label>
-        <div className="flex items-center">
-          <span className="flex h-9 items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground">@</span>
-          <Input id="twitterHandle" className="rounded-l-none" placeholder="kullanici_adi" {...register('twitterHandle')} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="twitterHandle">Twitter / X</Label>
+          <div className="flex items-center">
+            <span className="flex h-9 items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground">@</span>
+            <Input id="twitterHandle" className="rounded-l-none" placeholder="kullanici_adi" {...register('twitterHandle')} />
+          </div>
+          {errors.twitterHandle && <p className="text-xs text-destructive">{errors.twitterHandle.message}</p>}
         </div>
-        {errors.twitterHandle && <p className="text-xs text-destructive">{errors.twitterHandle.message}</p>}
-      </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="githubHandle">GitHub Kullanıcı Adı</Label>
-        <Input id="githubHandle" placeholder="github-kullanici" {...register('githubHandle')} />
-        {errors.githubHandle && <p className="text-xs text-destructive">{errors.githubHandle.message}</p>}
+        <div className="space-y-1.5">
+          <Label htmlFor="githubHandle">GitHub</Label>
+          <Input id="githubHandle" placeholder="github-kullanici" {...register('githubHandle')} />
+          {errors.githubHandle && <p className="text-xs text-destructive">{errors.githubHandle.message}</p>}
+        </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>

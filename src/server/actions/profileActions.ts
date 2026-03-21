@@ -13,11 +13,22 @@ export async function updateProfile(input: unknown) {
   const parsed = profileSchema.safeParse(input)
   if (!parsed.success) return { success: false as const, error: 'Geçersiz veri.' }
 
-  const { bio, websiteUrl, twitterHandle, githubHandle } = parsed.data
+  const { name, username, email, bio, websiteUrl, twitterHandle, githubHandle } = parsed.data
+
+  // Uniqueness checks
+  const [existingUsername, existingEmail] = await Promise.all([
+    db.user.findFirst({ where: { username, NOT: { id: session.user.id } } }),
+    db.user.findFirst({ where: { email, NOT: { id: session.user.id } } }),
+  ])
+  if (existingUsername) return { success: false as const, error: 'Bu kullanıcı adı zaten alınmış.' }
+  if (existingEmail) return { success: false as const, error: 'Bu email adresi zaten kullanılıyor.' }
 
   await db.user.update({
     where: { id: session.user.id },
     data: {
+      name,
+      username,
+      email,
       bio: bio || null,
       websiteUrl: websiteUrl || null,
       twitterHandle: twitterHandle || null,
@@ -25,7 +36,6 @@ export async function updateProfile(input: unknown) {
     },
   })
 
-  const username = session.user.username ?? session.user.name
   revalidatePath(`/u/${username}`)
   revalidatePath('/u/edit')
   return { success: true as const }

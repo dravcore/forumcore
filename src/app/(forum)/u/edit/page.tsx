@@ -16,6 +16,7 @@ export default async function EditProfilePage() {
     select: {
       name: true,
       username: true,
+      email: true,
       bio: true,
       avatarUrl: true,
       websiteUrl: true,
@@ -48,6 +49,9 @@ export default async function EditProfilePage() {
           <h2 className="mb-4 text-sm font-medium">Profil Bilgileri</h2>
           <ProfileForm
             defaultValues={{
+              name: user.name,
+              username: user.username ?? '',
+              email: user.email,
               bio: user.bio ?? '',
               websiteUrl: user.websiteUrl ?? '',
               twitterHandle: user.twitterHandle ?? '',
