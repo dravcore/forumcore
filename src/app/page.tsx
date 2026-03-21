@@ -8,8 +8,8 @@ import { db } from '@/lib/db'
 async function getStats() {
   const [userCount, threadCount, postCount] = await Promise.all([
     db.user.count(),
-    db.thread.count(),
-    db.post.count(),
+    db.thread.count({ where: { deletedAt: null } }),
+    db.post.count({ where: { deletedAt: null } }),
   ])
   return { userCount, threadCount, postCount }
 }
