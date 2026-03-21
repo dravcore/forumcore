@@ -14,22 +14,31 @@ npm run dev
 
 ## Git Workflow
 
-### Core Rule
+### Branch Strategy
 
-**Never** commit directly to `main`. Every change is developed on a branch and merged into main via a PR.
+Two permanent branches:
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production-ready, stable. Receives merges from `develop` only. |
+| `develop` | Integration branch. All feature branches merge here first. |
+
+**Flow:** `feature branch` → PR → `develop` → PR → `main`
 
 ### Branch Naming
 
+Branches are named after the **feature**, not the phase. Do not include phase numbers.
+
 ```
-<type>/<linear-id>-<short-description>
+<type>/<short-feature-description>
 ```
 
 | Prefix | Usage | Example |
 |--------|-------|---------|
-| `feat/` | New feature | `feat/dra-14-category-crud` |
-| `fix/` | Bug fix | `fix/dra-22-mention-bug` |
-| `chore/` | Tooling, dependencies | `chore/dra-8-coolify-setup` |
-| `refactor/` | Code improvement | `refactor/dra-16-pagination` |
+| `feat/` | New feature | `feat/rich-text-editor` |
+| `fix/` | Bug fix | `fix/notification-duplicate` |
+| `chore/` | Tooling, dependencies | `chore/upgrade-prisma` |
+| `refactor/` | Code improvement | `refactor/thread-queries` |
 
 ### Commit Message Format
 
@@ -38,29 +47,39 @@ npm run dev
 ```
 <type>(<scope>): <description>
 
-feat(threads): add pagination to thread list
+feat(editor): add TipTap markdown support
 fix(auth): redirect to login when session expires
-chore(deps): update prisma to 6.x
+chore(deps): update prisma to 7.x
 ```
 
-**Scope examples:** `auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`
+**Scope examples:** `auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`, `editor`, `tags`
 
 ### PR Process
 
-1. Create a branch: `git checkout -b feat/dra-14-category-crud`
+#### Feature → develop
+
+1. Branch off from `develop`: `git checkout -b feat/rich-text-editor develop`
 2. Make changes and commit
 3. `npm run build` — build must pass
 4. `npm run typecheck` — no TypeScript errors
-5. Open a PR, include Linear ID in the title: `feat(categories): add admin CRUD — Closes DRA-14`
-6. Merge into main
+5. Open a PR targeting **`develop`**, include Linear ID: `feat(editor): add TipTap — Closes DRA-45`
+6. Merge into `develop`
+
+#### develop → main
+
+1. Open a PR from `develop` → `main`
+2. Title: `release: <brief description of what's included>`
+3. All features in the batch must be tested and stable
+4. Merge into `main` → triggers Coolify deploy
 
 ## Multiple Agents (Claude Code + Cursor)
 
 When two AI agents work simultaneously:
 
 - **Each agent works on a different branch** — never work on the same branch concurrently
+- Always branch off from `develop`, not `main`
 - Run `git status` before starting a new task
-- Stay up to date with `git pull origin main --rebase` before committing
+- Stay up to date with `git pull origin develop --rebase` before committing
 
 ## Code Standards
 

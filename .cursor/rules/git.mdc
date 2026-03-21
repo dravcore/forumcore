@@ -6,20 +6,29 @@ alwaysApply: true
 
 # Git Workflow Rules
 
-## Core Rule
+## Branch Strategy
 
-**Never** commit directly to `main`. Every change is developed on a branch and merged into main via a PR.
+Two permanent branches:
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production-ready, stable. Receives merges from `develop` only. Never commit directly. |
+| `develop` | Integration branch. All feature branches merge here first. |
+
+**Flow:** `feature branch` → PR → `develop` → PR → `main`
 
 ## Branch Naming
 
-```
-<type>/<linear-id>-<short-description>
+Branches are named after the **feature**, not the phase. Do not include phase numbers.
 
-feat/dra-14-category-crud
-feat/dra-15-thread-listing
-fix/dra-22-mention-notification-bug
-chore/dra-8-coolify-deploy-setup
-refactor/dra-16-post-pagination
+```
+<type>/<short-feature-description>
+
+feat/rich-text-editor
+feat/tag-system
+fix/notification-duplicate
+chore/upgrade-prisma
+refactor/thread-queries
 ```
 
 | Prefix | Usage |
@@ -37,9 +46,9 @@ refactor/dra-16-post-pagination
 ```
 <type>(<scope>): <description>
 
-feat(threads): add pagination to thread list
+feat(editor): add TipTap markdown support
 fix(auth): redirect to login when session expires
-chore(deps): update prisma to 6.x
+chore(deps): update prisma to 7.x
 refactor(queries): extract thread queries to separate file
 ```
 
@@ -58,30 +67,42 @@ refactor(queries): extract thread queries to separate file
 
 ### Scope Examples
 
-`auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`, `api`
+`auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`, `api`, `editor`, `tags`, `search`, `notifications`
+
+## PR Rules
+
+### Feature → develop
+
+- PR targets `develop`, never `main`
+- Title in commit format: `feat(editor): add TipTap markdown support`
+- Include Linear issue ID in description: `Closes DRA-45` (use the real issue key from Linear; see `ROADMAP.md`)
+- Before merging:
+  - [ ] Build passes (`npm run build`)
+  - [ ] No TypeScript errors (`tsc --noEmit`)
+  - [ ] Tests pass if any exist
+
+### develop → main
+
+- Open PR from `develop` → `main`
+- Title: `release: <brief description of included features>`
+- All features must be stable and tested
+- Merging triggers Coolify production deploy
 
 ## Working with Multiple Agents (Claude Code + Cursor)
 
 To avoid conflicts when two agents work simultaneously:
 
 - **Each agent works on a different branch** — never work on the same branch concurrently
+- Always branch off from `develop`, not `main`
 - Check branch status with `git status` before starting a new task
-- Before committing, stay up to date with `git pull origin main --rebase`
-- If two agents are editing the same file simultaneously → finish one, merge it, then start the other
-
-## PR Rules
-
-- PR title in commit format: `feat(threads): add pagination`
-- Include Linear issue ID in PR description: `Closes DRA-15`
-- Before merging to main:
-  - [ ] Build passes (`npm run build`)
-  - [ ] No TypeScript errors (`tsc --noEmit`)
-  - [ ] Tests pass if any exist
+- Before committing, stay up to date with `git pull origin develop --rebase`
+- If two agents are editing the same file simultaneously → finish one, merge it to develop, then start the other
 
 ## Forbidden Actions
 
-- Direct push to `main` branch
-- `git push --force` (to main)
+- Direct push to `main` or `develop`
+- `git push --force` (to main or develop)
+- Branching off from `main` for features (always use `develop` as base)
 - `.env` file in a commit
 - Commit containing `console.log` (remove development logs before committing)
 - Commit containing `TODO:` comments (open a Linear issue instead)
