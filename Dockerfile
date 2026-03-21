@@ -44,8 +44,6 @@ RUN adduser --system --uid 1001 nextjs
 
 # Prisma schema + migration dosyaları (migrate deploy için gerekli)
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/src/generated ./src/generated
 
 # Next.js standalone output
