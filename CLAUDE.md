@@ -1,121 +1,122 @@
 # ForumCore
 
-Self-hosted forum platformu. Next.js 16 App Router + TypeScript + PostgreSQL + Better Auth, Coolify üzerinde çalışır.
+Self-hosted forum platform. Next.js 16 App Router + TypeScript + PostgreSQL + Better Auth, running on Coolify.
 
 ## Stack
 
-- **Framework:** Next.js 16 App Router (`src/` dizini, `@/*` alias)
-- **Dil:** TypeScript (strict mode)
-- **Stil:** Tailwind CSS v4 + shadcn/ui
+- **Framework:** Next.js 16 App Router (`src/` directory, `@/*` alias)
+- **Language:** TypeScript (strict mode)
+- **Styling:** Tailwind CSS v4 + shadcn/ui
 - **DB:** PostgreSQL + Prisma ORM
 - **Auth:** Better Auth
 - **Storage:** MinIO (Coolify)
 - **Cache:** Redis (Coolify)
-- **Deploy:** Coolify (kendi sunucu) — `output: "standalone"` zorunlu
+- **Deploy:** Coolify (self-hosted) — `output: "standalone"` required
 
-## Proje Yapısı
+## Project Structure
 
 ```
 src/
-├── app/          # Next.js App Router sayfaları ve API route'ları
-├── components/   # UI bileşenleri
-│   └── ui/       # shadcn/ui bileşenleri (elle düzenleme yapma, npx shadcn add)
-├── lib/          # auth.ts, db.ts, utils.ts gibi singleton'lar
-├── server/       # Server-only iş mantığı (queries, actions)
-└── types/        # Paylaşılan TypeScript tipleri
+├── app/          # Next.js App Router pages and API routes
+├── components/   # UI components
+│   └── ui/       # shadcn/ui components (do not edit manually, use npx shadcn add)
+├── lib/          # Singletons: auth.ts, db.ts, utils.ts
+├── server/       # Server-only business logic (queries, actions)
+└── types/        # Shared TypeScript types
 prisma/
 └── schema.prisma
 ```
 
-## Kodlama Kuralları
+## Coding Rules
 
-- Server Components varsayılan; `"use client"` yalnızca gerektiğinde ekle
-- Veri çekme Server Components veya Server Actions ile yapılır
-- API route'ları yalnızca SSE, webhook ve harici servisler için kullan
-- Form validasyonu Zod ile yap
-- `src/lib/db.ts` Prisma Client singleton — başka yerde `new PrismaClient()` açma
-- Environment variable'lar Coolify UI'dan yönetilir; `.env` repoya commit edilmez
-- Vercel-specific özellikler kullanma (Edge Runtime, ISR vb.)
-- `output: "standalone"` next.config.ts'de kalmalı — Coolify için zorunlu
+- Server Components by default; add `"use client"` only when necessary
+- Data fetching via Server Components or Server Actions
+- API routes only for SSE, webhooks, and external service integrations
+- Form validation with Zod
+- `src/lib/db.ts` is the Prisma Client singleton — do not create `new PrismaClient()` elsewhere
+- Environment variables are managed via Coolify UI; `.env` is never committed to the repo
+- Do not use Vercel-specific features (Edge Runtime, ISR, etc.)
+- `output: "standalone"` must remain in next.config.ts — required for Coolify
 
-## Veritabanı
+## Database
 
-- Prisma ORM kullan
-- Migration geliştirmede: `npx prisma migrate dev`
-- Migration deploy'da: `npx prisma migrate deploy`
+- Use Prisma ORM
+- Migration in development: `npx prisma migrate dev`
+- Migration in deployment: `npx prisma migrate deploy`
 - Schema: `prisma/schema.prisma`
 
-## Güvenlik
+## Security
 
-- Her Server Action başında Zod ile input doğrula, session + rol kontrolü yap
-- `dangerouslySetInnerHTML` kullanma; kullanıcı içeriğini her zaman sanitize et
-- Hata mesajlarında DB/stack trace detaylarını kullanıcıya gösterme
-- Dosya upload'da MIME + boyut kontrolü yap, dosyayı UUID ile yeniden adlandır
-- `$queryRaw` içine string interpolasyonu koyma (`Prisma.sql` kullan)
-- Secret'ları kod içine yazma; `process.env` erişimini `src/env.ts` üzerinden yap
+- Validate input with Zod at the start of every Server Action, check session + role
+- Do not use `dangerouslySetInnerHTML`; always sanitize user content
+- Do not expose DB/stack trace details in error messages to the user
+- For file uploads, validate MIME type + size, rename files with UUID
+- Do not use string interpolation inside `$queryRaw` (use `Prisma.sql`)
+- Do not hardcode secrets; access `process.env` through `src/env.ts`
 
-## Performans
+## Performance
 
-- N+1 sorgusundan kaç: liste sorgularında `include`/`select` ile ilişkileri tek sorguda çek
-- Listede büyük metin alanlarını (`content`) çekme, detay sayfasında çek
-- Tüm listeyi tek seferde çekme — her zaman pagination kullan (varsayılan: 20 kayıt)
-- Paralel çalışabilecek sorguları `Promise.all` ile birleştir
-- Sık okunan statik veriyi `unstable_cache` veya Redis ile cachele
-- `<img>` yerine Next.js `<Image>` kullan
+- Avoid N+1 queries: fetch relations in list queries using `include`/`select` in a single query
+- Do not fetch large text fields (`content`) in list views; fetch them on detail pages
+- Never fetch entire lists at once — always use pagination (default: 20 records)
+- Combine parallelizable queries with `Promise.all`
+- Cache frequently read static data with `unstable_cache` or Redis
+- Use Next.js `<Image>` instead of `<img>`
 
-## Hata Yönetimi
+## Error Handling
 
-- Server Actions exception fırlatmak yerine `{ success, error }` yapısı döndürmeli
-- `notFound()` ve `redirect()` try/catch içine alma — Next.js bunları özel exception olarak fırlatır
-- Her route için `error.tsx` ve `not-found.tsx` tanımla
-- `console.log` production'da bırakma; loglama `src/lib/logger.ts` üzerinden
+- Server Actions should return `{ success, error }` structure instead of throwing exceptions
+- Do not wrap `notFound()` and `redirect()` in try/catch — Next.js throws them as special exceptions
+- Define `error.tsx` and `not-found.tsx` for every route
+- Do not leave `console.log` in production; use `src/lib/logger.ts` for logging
 
-## UI/UX Tasarım Standartları
+## UI/UX Design Standards
 
-UI kodu yazarken deneyimli bir UI/UX tasarımcısı gibi davran. Fonksiyonellik kadar görsel kalite, hiyerarşi ve kullanıcı deneyimi birinci önceliktir.
+When writing UI code, think like an experienced UI/UX designer. Visual quality, hierarchy, and user experience are equally important as functionality.
 
-- **Görsel hiyerarşi:** Boyut, renk ve boşluk ile kullanıcı gözünü yönlendir
-- **Boşluk:** Sıkışık UI yazma; nefes alan, yeterli padding/margin kullanan tasarım yap
-- **Tutarlılık:** shadcn/ui token'larını kullan (`muted-foreground`, `destructive`, `accent` vb.), ham hex veya `gray-*` sabit renk kullanma
-- **Geri bildirim:** Her aksiyonun görsel karşılığı olmalı — hover, focus, loading, error, success
-- **Boş durumlar:** Boş liste bırakma; açıklayıcı mesaj ve aksiyon butonu göster
-- **Erişilebilirlik:** `focus-visible:ring`, ikon butonlara `aria-label`, `<div onClick>` yerine `<button>`
-- **Mobil öncelikli:** Her bileşen mobil uyumlu; sabit genişlik (`w-[400px]`) kullanma
-- **Form:** Label üstte, hata `text-destructive text-sm` altında, submit loading state'inde disabled
+- **Visual hierarchy:** Guide the user's eye with size, color, and spacing
+- **Whitespace:** Do not write cramped UI; use adequate padding/margin for breathing room
+- **Consistency:** Use shadcn/ui tokens (`muted-foreground`, `destructive`, `accent`, etc.), do not use raw hex or `gray-*` fixed colors
+- **Feedback:** Every action must have a visual response — hover, focus, loading, error, success
+- **Empty states:** Do not leave empty lists; show a descriptive message and action button
+- **Accessibility:** `focus-visible:ring`, `aria-label` on icon buttons, use `<button>` instead of `<div onClick>`
+- **Mobile-first:** Every component must be mobile-responsive; do not use fixed widths (`w-[400px]`)
+- **Forms:** Label on top, error as `text-destructive text-sm` below, submit button disabled in loading state
 
-## İsimlendirme Kuralları
+## Naming Conventions
 
-- Dosyalar: bileşenler `PascalCase.tsx`, diğerleri `camelCase.ts`
-- Değişken/fonksiyon: `camelCase` — boolean `is/has/can` prefix'i ile
-- Server actions: `createX`, `updateX`, `deleteX`, `pinX` formatı (`src/server/actions/`)
-- Queries: `getXByY`, `getXs` formatı (`src/server/queries/`)
-- Event handler'lar: `handleSubmit`, `handleDelete` (`handle` prefix)
-- Sabitler: `UPPER_SNAKE_CASE`
+- Files: components in `PascalCase.tsx`, others in `camelCase.ts`
+- Variables/functions: `camelCase` — booleans prefixed with `is/has/can`
+- Server actions: `createX`, `updateX`, `deleteX`, `pinX` format (`src/server/actions/`)
+- Queries: `getXByY`, `getXs` format (`src/server/queries/`)
+- Event handlers: `handleSubmit`, `handleDelete` (`handle` prefix)
+- Constants: `UPPER_SNAKE_CASE`
 
 ## Git Workflow
 
-- `main`'e direkt commit yasak — her özellik kendi branch'inde
-- Branch format: `feat/dra-14-kategori-crud`, `fix/dra-22-mention-hatasi`
+- Direct commits to `main` are forbidden — every feature lives on its own branch
+- Branch format: `feat/dra-14-category-crud`, `fix/dra-22-mention-bug`
 - Commit format: `feat(threads): add pagination` (Conventional Commits)
-- Çoklu agent (Claude + Cursor) aynı anda **farklı branch**'lerde çalışır
-- PR açılmadan önce: build alınmalı, TypeScript hatası olmamalı
+- **All commit messages must be in English**
+- Multiple agents (Claude + Cursor) work on **different branches** simultaneously
+- Before opening a PR: build must pass, no TypeScript errors
 
-## Test Stratejisi
+## Test Strategy
 
-- **Vitest** ile server action'ları ve utility fonksiyonlarını test et
-- **Playwright** ile kritik E2E akışları test et (kayıt, giriş, thread oluşturma)
-- Test dosyaları test edilecek dosyanın yanında `__tests__/` klasöründe
-- Her server action için en az: yetkisiz erişim testi + geçersiz input testi
-- Snapshot testi yazma, bileşen render testinden kaçın
+- Test server actions and utility functions with **Vitest**
+- Test critical E2E flows with **Playwright** (register, login, thread creation)
+- Test files go in `__tests__/` next to the file being tested
+- Minimum per server action: unauthorized access test + invalid input test
+- Do not write snapshot tests; avoid component render tests
 
 ## Environment Variables
 
-- Tüm env var'lar `src/env.ts` üzerinden Zod ile doğrulanır (`@t3-oss/env-nextjs`)
-- `process.env.X` direkt kullanma, her zaman `import { env } from "@/env"` üzerinden eriş
-- `.env.example` dosyasını her zaman güncel tut
-- Secret'lar asla `NEXT_PUBLIC_` prefix'i almamalı
+- All env vars are validated with Zod through `src/env.ts` (`@t3-oss/env-nextjs`)
+- Do not use `process.env.X` directly; always access through `import { env } from "@/env"`
+- Keep `.env.example` up to date at all times
+- Secrets must never have the `NEXT_PUBLIC_` prefix
 
 ## Linear
 
-Proje: ForumCore (Dravcore workspace)
-Issue'lar DRA-5'ten başlar — her görev bir Linear issue.
+Project: ForumCore (Dravcore workspace)
+Issues start from DRA-5 — every task is a Linear issue.

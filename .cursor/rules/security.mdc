@@ -1,92 +1,92 @@
 ---
-description: Güvenlik kuralları — XSS, CSRF, input sanitization, yetkilendirme, dosya upload
+description: Security rules — XSS, CSRF, input sanitization, authorization, file uploads
 globs: ["src/**"]
 alwaysApply: true
 ---
 
-# Güvenlik Kuralları
+# Security Rules
 
-Forum gibi kullanıcı içeriği barındıran bir platformda güvenlik birinci önceliktir. Aşağıdaki kurallar her zaman uygulanır.
+On a platform that hosts user-generated content like a forum, security is the top priority. The following rules always apply.
 
-## Input Validasyonu
+## Input Validation
 
-- Her Server Action ve API route'un başında Zod ile input doğrula
-- Kullanıcıdan gelen veriyi **asla** doğrulamadan kullanma
-- Şema `src/server/validations/` altında tanımla, action içine gömme
+- Validate input with Zod at the start of every Server Action and API route
+- **Never** use data from the user without validating it first
+- Define schemas under `src/server/validations/`; do not embed them inside actions
 
 ```ts
-// Her server action bu yapıda başlamalı
+// Every server action must start with this pattern
 const schema = z.object({ content: z.string().min(1).max(10000) })
 const parsed = schema.safeParse(input)
-if (!parsed.success) return { error: "Geçersiz veri" }
+if (!parsed.success) return { error: "Invalid data" }
 ```
 
-## XSS Koruması
+## XSS Protection
 
-- Kullanıcı içeriğini HTML olarak render etme — `dangerouslySetInnerHTML` kullanma
-- Markdown render için `rehype-sanitize` ile sanitize et (whitelist yaklaşımı)
-- URL alanlarında `javascript:` protokolünü engelle
-- Rich text editörden gelen HTML'i server'da `DOMPurify` veya `sanitize-html` ile temizle
+- Do not render user content as HTML — do not use `dangerouslySetInnerHTML`
+- For Markdown rendering, sanitize with `rehype-sanitize` (whitelist approach)
+- Block the `javascript:` protocol in URL fields
+- Sanitize HTML from rich text editors on the server with `DOMPurify` or `sanitize-html`
 
-## Yetkilendirme (Authorization)
+## Authorization
 
-- Her Server Action'ın başında session kontrolü yap
-- **Authentication ≠ Authorization** — oturum açık olması yetmez, rolü de kontrol et
-- Kaynak sahipliğini doğrula: kullanıcı yalnızca kendi post/thread'ini düzenleyebilir
+- Check session at the start of every Server Action
+- **Authentication ≠ Authorization** — an open session is not enough; also check the role
+- Verify resource ownership: users can only edit their own posts/threads
 
 ```ts
-// Her korumalı action bu yapıda olmalı
-const session = await requireAuth() // session yoksa redirect("/login")
+// Every protected action must follow this pattern
+const session = await requireAuth() // redirects to /login if no session
 const post = await db.post.findUniqueOrThrow({ where: { id } })
 if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
   throw new Error("Unauthorized")
 }
 ```
 
-## Prisma / SQL Güvenliği
+## Prisma / SQL Security
 
-- Prisma ORM parametreli sorgu kullandığı için SQL injection riski düşük, ama `$queryRaw` kullanılacaksa `Prisma.sql` tagged template kullan
-- `$queryRaw` içine string interpolasyonu (`${userInput}`) asla koyma
+- Prisma ORM uses parameterized queries, so SQL injection risk is low; but if using `$queryRaw`, use `Prisma.sql` tagged templates
+- Never put string interpolation (`${userInput}`) inside `$queryRaw`
 
 ```ts
-// Doğru
+// Correct
 await db.$queryRaw(Prisma.sql`SELECT * FROM "User" WHERE email = ${email}`)
-// Yanlış
+// Wrong
 await db.$queryRaw`SELECT * FROM "User" WHERE email = '${email}'`
 ```
 
-## Dosya Upload Güvenliği
+## File Upload Security
 
-- Yüklenen dosyanın MIME type'ını hem client hem server'da kontrol et
-- Dosya boyutunu server'da sınırla (avatar için max 2MB)
-- Dosya adını kullanıcıdan alma — UUID ile yeniden adlandır
-- MinIO bucket'ı public read / private write olarak yapılandır
-- Upload edilen dosyayı doğrudan serve etme, signed URL kullan
+- Check the uploaded file's MIME type on both client and server
+- Limit file size on the server (max 2MB for avatars)
+- Do not accept file names from users — rename with UUID
+- Configure MinIO bucket as public read / private write
+- Do not serve uploaded files directly; use signed URLs
 
 ## Rate Limiting
 
-- Auth endpoint'lerine (login, register) mutlaka rate limiting uygula
-- Post/thread oluşturma aksiyonlarına rate limiting uygula
-- Redis tabanlı rate limiter kullan (`src/lib/rate-limit.ts`)
+- Always apply rate limiting to auth endpoints (login, register)
+- Apply rate limiting to post/thread creation actions
+- Use the rate limiter via `src/lib/rateLimit.ts`
 
 ## Environment Variables
 
-- Secret'ları kod içine asla yazma (API key, DB password vb.)
-- `process.env.X` kullanmadan önce `src/env.ts` üzerinden doğrula (zod ile)
-- Client bundle'a gönderilecek env var'lar yalnızca `NEXT_PUBLIC_` prefix'li olmalı
-- Hassas değerleri log'a basma
+- Never hardcode secrets in code (API keys, DB passwords, etc.)
+- Validate via `src/env.ts` (with Zod) before using any `process.env.X`
+- Only `NEXT_PUBLIC_`-prefixed env vars should be sent to the client bundle
+- Do not log sensitive values
 
-## HTTP Güvenlik Başlıkları
+## HTTP Security Headers
 
-`next.config.ts` içinde şu header'ları tanımla:
+Define the following headers in `next.config.ts`:
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy`
 
-## Genel
+## General
 
-- Hata mesajlarında iç detayları kullanıcıya gösterme (stack trace, DB hatası vb.)
-- Admin/moderatör işlemlerini ayrı bir audit log'a yaz
-- Kullanıcı şifrelerini loglama
-- Dependency'leri düzenli güncelle, `npm audit` çıktısını takip et
+- Do not expose internal details in error messages (stack traces, DB errors, etc.)
+- Write admin/moderator actions to a separate audit log
+- Never log user passwords
+- Update dependencies regularly; monitor `npm audit` output

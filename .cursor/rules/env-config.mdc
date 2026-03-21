@@ -1,17 +1,17 @@
 ---
-description: Environment variable yönetimi ve konfigürasyon validasyonu
+description: Environment variable management and configuration validation
 globs: ["src/env.ts", "src/env.js", ".env*", "next.config.ts"]
 alwaysApply: false
 ---
 
-# Environment Variable Kuralları
+# Environment Variable Rules
 
-## Temel Prensip
+## Core Principle
 
-Environment variable eksik veya yanlışsa uygulama **build time'da** hata vermeli, runtime'da değil.
-Bunun için tüm env var'lar `src/env.ts` üzerinden Zod ile doğrulanır.
+If an environment variable is missing or incorrect, the application must fail at **build time**, not at runtime.
+For this reason, all env vars are validated with Zod through `src/env.ts`.
 
-## src/env.ts Yapısı (@t3-oss/env-nextjs)
+## src/env.ts Structure (@t3-oss/env-nextjs)
 
 ```ts
 // src/env.ts
@@ -44,35 +44,35 @@ export const env = createEnv({
 })
 ```
 
-## Kullanım Kuralları
+## Usage Rules
 
 ```ts
-// Doğru — her zaman env.ts üzerinden eriş
+// Correct — always access through env.ts
 import { env } from "@/env"
 const db = new PrismaClient({ datasourceUrl: env.DATABASE_URL })
 
-// Yanlış — direkt process.env kullanma
+// Wrong — do not use process.env directly
 const db = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL })
 ```
 
-## .env Dosyaları
+## .env Files
 
-| Dosya | Amaç | Repoya girer mi? |
-|-------|------|-----------------|
-| `.env.example` | Hangi değişkenlerin gerektiğini gösterir, değer içermez | ✅ Evet |
-| `.env` | Lokal geliştirme değerleri | ❌ Hayır |
-| `.env.test` | Test ortamı değerleri | ❌ Hayır |
+| File | Purpose | Committed to repo? |
+|------|---------|-------------------|
+| `.env.example` | Shows which variables are required; no actual values | ✅ Yes |
+| `.env` | Local development values | ❌ No |
+| `.env.test` | Test environment values | ❌ No |
 
-`.env.example` her zaman güncel tutulmalı — yeni bir env var eklendiğinde buraya da ekle.
+`.env.example` must always be kept up to date — add any new env var here when you add it.
 
-## Coolify'da Yönetim
+## Management in Coolify
 
-- Tüm production değerleri Coolify UI'dan set edilir
-- Deploy pipeline `src/env.ts` validasyonunu build sırasında çalıştırır
-- Eksik değer varsa build başarısız olur, kötü config production'a ulaşmaz
+- All production values are set via Coolify UI
+- The deploy pipeline runs `src/env.ts` validation during build
+- If a value is missing, the build fails — bad config never reaches production
 
-## Güvenlik
+## Security
 
-- `NEXT_PUBLIC_` prefix'i olmayan değişkenler client bundle'a girmez
-- Secret'ları (AUTH_SECRET, MINIO_SECRET_KEY vb.) asla `NEXT_PUBLIC_` yapma
-- `.env` dosyasını `.gitignore`'a ekle (Next.js varsayılan olarak ekler)
+- Variables without the `NEXT_PUBLIC_` prefix do not enter the client bundle
+- Never make secrets (AUTH_SECRET, MINIO_SECRET_KEY, etc.) `NEXT_PUBLIC_`
+- Add `.env` to `.gitignore` (Next.js adds it by default)

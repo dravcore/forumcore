@@ -1,31 +1,31 @@
 ---
-description: Prisma ORM ve veritabanı kuralları
+description: Prisma ORM and database rules
 globs: ["prisma/**", "src/lib/db.ts", "src/server/**"]
 alwaysApply: false
 ---
 
-# Veritabanı Kuralları
+# Database Rules
 
-## Prisma Kullanımı
+## Prisma Usage
 - Prisma Client singleton: `import { db } from "@/lib/db"`
-- Asla `new PrismaClient()` kullanma
-- Migration geliştirmede: `npx prisma migrate dev --name <isim>`
-- Migration deploy'da: `npx prisma migrate deploy`
-- Schema değişiklikten sonra: `npx prisma generate`
+- Never use `new PrismaClient()`
+- Migration in development: `npx prisma migrate dev --name <name>`
+- Migration in deployment: `npx prisma migrate deploy`
+- After schema changes: `npx prisma generate`
 
-## Sorgu Kuralları
-- Sorgular `src/server/` altında fonksiyon olarak tanımla
-- Component içine doğrudan Prisma sorgusu yazma
-- `select` ile sadece gereken alanları çek (tüm modeli çekme)
-- İlişkili veri için `include` yerine mümkünse `select` içinde nested select kullan
+## Query Rules
+- Define queries as functions under `src/server/`
+- Do not write Prisma queries directly inside components
+- Use `select` to fetch only needed fields (do not fetch the entire model)
+- For related data, prefer nested `select` inside `select` over `include` where possible
 
-## Schema Kuralları
-- Her model `id`, `createdAt`, `updatedAt` alanlarına sahip olmalı
-- Soft delete için `deletedAt DateTime?` kullan (fiziksel silme yerine)
-- Slug alanları `@unique` olmalı
-- Enum'lar Prisma schema'da tanımla, TypeScript'te tekrar tanımlama
+## Schema Rules
+- Every model must have `id`, `createdAt`, `updatedAt` fields
+- Use `deletedAt DateTime?` for soft deletes (instead of physical deletion)
+- Slug fields must be `@unique`
+- Define enums in the Prisma schema; do not redefine them in TypeScript
 
-## Örnek Sorgu Yapısı
+## Example Query Structure
 ```ts
 // src/server/queries/threads.ts
 import { db } from "@/lib/db"

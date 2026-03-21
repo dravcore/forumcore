@@ -1,36 +1,36 @@
 ---
-description: Performans ve optimizasyon kuralları — N+1, caching, bundle, Suspense
+description: Performance and optimization rules — N+1, caching, bundle, Suspense
 globs: ["src/**", "prisma/**"]
 alwaysApply: false
 ---
 
-# Performans ve Optimizasyon Kuralları
+# Performance and Optimization Rules
 
-## Veritabanı — N+1 Sorunu
+## Database — N+1 Problem
 
-En yaygın performans tuzağı. Liste render ederken her eleman için ayrı sorgu yapma.
+The most common performance trap. Do not make separate queries for each item when rendering lists.
 
 ```ts
-// YANLIŞ — N+1: her thread için ayrı author sorgusu
+// WRONG — N+1: separate author query for each thread
 const threads = await db.thread.findMany()
 for (const thread of threads) {
   thread.author = await db.user.findUnique({ where: { id: thread.authorId } })
 }
 
-// DOĞRU — tek sorguda include ile çek
+// CORRECT — fetch with include in a single query
 const threads = await db.thread.findMany({
   include: { author: { select: { username: true, avatarUrl: true } } }
 })
 ```
 
-## Veritabanı — Sadece Gerekeni Çek
+## Database — Fetch Only What You Need
 
-- `findMany()` veya `findUnique()` çağrılarında `select` kullan
-- Büyük metin alanlarını (`content`) listede çekme, detay sayfasında çek
-- `_count` ile ilişkili kayıt sayısını ayrı sorgu olmadan al
+- Use `select` in `findMany()` or `findUnique()` calls
+- Do not fetch large text fields (`content`) in list views; fetch them on detail pages
+- Use `_count` to get related record counts without a separate query
 
 ```ts
-// Liste için — content çekme
+// For listings — do not fetch content
 const threads = await db.thread.findMany({
   select: {
     id: true, title: true, slug: true, createdAt: true,
@@ -42,17 +42,17 @@ const threads = await db.thread.findMany({
 
 ## Pagination
 
-- Tüm listeyi asla tek seferde çekme
-- Sayfa bazlı: `skip` + `take` (basit durumlar)
-- Sonsuz scroll: cursor-based pagination (`cursor` + `take`)
-- Varsayılan sayfa boyutu: 20 kayıt
+- Never fetch an entire list at once
+- Offset-based: `skip` + `take` (for simple cases)
+- Infinite scroll: cursor-based pagination (`cursor` + `take`)
+- Default page size: 20 records
 
 ## Next.js Caching
 
-- Server Component veri çekişleri otomatik cachelenir (Next.js 15 `fetch`)
-- Prisma sorguları için `unstable_cache` ile cache katmanı ekle
-- Kullanıcıya özel veri için cache kullanma (`cookies`, `headers` ile çekilen)
-- `revalidateTag` ile ilgili sayfaları invalidate et
+- Server Component data fetches are automatically cached (Next.js 15 `fetch`)
+- Add a cache layer for Prisma queries with `unstable_cache`
+- Do not cache user-specific data (fetched with `cookies`, `headers`)
+- Invalidate related pages with `revalidateTag`
 
 ```ts
 import { unstable_cache } from "next/cache"
@@ -64,11 +64,11 @@ export const getCategories = unstable_cache(
 )
 ```
 
-## React Suspense ve Streaming
+## React Suspense and Streaming
 
-- Yavaş veri çeken bileşenleri `<Suspense>` ile sar
-- Her sayfa için `loading.tsx` tanımla
-- Skeleton bileşenler hazırla, `null` veya boş return kullanma
+- Wrap slow data-fetching components with `<Suspense>`
+- Define `loading.tsx` for every page
+- Prepare skeleton components; do not return `null` or empty renders
 
 ```tsx
 // page.tsx
@@ -84,30 +84,30 @@ export default function ThreadPage() {
 }
 ```
 
-## Görsel Optimizasyon
+## Image Optimization
 
-- `<img>` yerine Next.js `<Image>` kullan
-- `width` ve `height` prop'larını her zaman belirt
-- Avatar gibi küçük görseller için `sizes` prop'u ayarla
-- MinIO'dan gelen görseller için `next.config.ts`'de domain whitelist ekle
+- Use Next.js `<Image>` instead of `<img>`
+- Always specify `width` and `height` props
+- Set the `sizes` prop for small images like avatars
+- Add a domain whitelist in `next.config.ts` for images from MinIO
 
-## Bundle Boyutu
+## Bundle Size
 
-- Ağır kütüphaneleri dinamik import ile yükle
-- Editör gibi büyük bileşenler için `dynamic(() => import(...), { ssr: false })`
-- `import` ile tüm paketi değil, sadece kullanılan fonksiyonu içe aktar
+- Load heavy libraries with dynamic imports
+- Use `dynamic(() => import(...), { ssr: false })` for large components like editors
+- Import only the used function, not the entire package
 
 ```ts
-// Doğru
+// Correct
 import { format } from "date-fns"
-// Yanlış
+// Wrong
 import * as dateFns from "date-fns"
 ```
 
 ## Server Actions
 
-- Server Action'lar her çağrıda yeni bir DB bağlantısı açmaz (Prisma pooling)
-- Paralel çalışabilecek sorguları `Promise.all` ile birleştir
+- Server Actions do not open a new DB connection on each call (Prisma pooling)
+- Combine parallelizable queries with `Promise.all`
 
 ```ts
 const [threads, categories] = await Promise.all([
@@ -118,6 +118,6 @@ const [threads, categories] = await Promise.all([
 
 ## Redis Cache
 
-- Sık okunan, nadir değişen veriyi Redis'e al (kategori listesi, site ayarları)
-- Cache key'leri tutarlı adlandır: `forum:categories`, `forum:user:{id}`
-- TTL'leri içerik tipine göre ayarla (kategori: 1 saat, thread listesi: 5 dakika)
+- Move frequently read, rarely changed data to Redis (category list, site settings)
+- Use consistent naming for cache keys: `forum:categories`, `forum:user:{id}`
+- Set TTLs based on content type (categories: 1 hour, thread list: 5 minutes)

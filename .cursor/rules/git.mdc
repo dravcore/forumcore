@@ -1,39 +1,41 @@
 ---
-description: Git workflow kuralları — branch stratejisi, commit mesajları, PR süreci
+description: Git workflow rules — branch strategy, commit messages, PR process
 globs:
 alwaysApply: true
 ---
 
-# Git Workflow Kuralları
+# Git Workflow Rules
 
-## Temel Kural
+## Core Rule
 
-`main` branch'e **asla** direkt commit yapılmaz. Her değişiklik bir branch üzerinde geliştirilir ve PR ile main'e alınır.
+**Never** commit directly to `main`. Every change is developed on a branch and merged into main via a PR.
 
-## Branch İsimlendirme
+## Branch Naming
 
 ```
-<tip>/<linear-id>-<kısa-açıklama>
+<type>/<linear-id>-<short-description>
 
-feat/dra-14-kategori-crud
-feat/dra-15-thread-listeleme
-fix/dra-22-mention-bildirim-hatası
+feat/dra-14-category-crud
+feat/dra-15-thread-listing
+fix/dra-22-mention-notification-bug
 chore/dra-8-coolify-deploy-setup
 refactor/dra-16-post-pagination
 ```
 
-| Prefix | Kullanım |
-|--------|----------|
-| `feat/` | Yeni özellik |
-| `fix/` | Bug düzeltme |
-| `chore/` | Konfigürasyon, tooling, bağımlılık güncellemesi |
-| `refactor/` | Davranış değişmeden kod iyileştirme |
-| `docs/` | Sadece dokümantasyon değişikliği |
+| Prefix | Usage |
+|--------|-------|
+| `feat/` | New feature |
+| `fix/` | Bug fix |
+| `chore/` | Configuration, tooling, dependency updates |
+| `refactor/` | Code improvement without behavior change |
+| `docs/` | Documentation-only change |
 
-## Commit Mesajı Formatı (Conventional Commits)
+## Commit Message Format (Conventional Commits)
+
+**All commit messages must be in English.**
 
 ```
-<tip>(<kapsam>): <açıklama>
+<type>(<scope>): <description>
 
 feat(threads): add pagination to thread list
 fix(auth): redirect to login when session expires
@@ -41,45 +43,45 @@ chore(deps): update prisma to 6.x
 refactor(queries): extract thread queries to separate file
 ```
 
-### Tip Listesi
+### Type List
 
-| Tip | Ne Zaman |
-|-----|----------|
-| `feat` | Yeni özellik |
-| `fix` | Bug düzeltme |
-| `chore` | Build, config, bağımlılık |
-| `refactor` | Yeniden yapılandırma |
-| `style` | Sadece format/stil (davranış yok) |
-| `test` | Test ekleme/düzenleme |
-| `docs` | Dokümantasyon |
-| `perf` | Performans iyileştirmesi |
+| Type | When |
+|------|------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `chore` | Build, config, dependencies |
+| `refactor` | Restructuring |
+| `style` | Format/style only (no behavior change) |
+| `test` | Adding/editing tests |
+| `docs` | Documentation |
+| `perf` | Performance improvement |
 
-### Kapsam (scope) Örnekleri
+### Scope Examples
 
 `auth`, `threads`, `posts`, `categories`, `users`, `admin`, `db`, `ui`, `api`
 
-## Çoklu Agent ile Çalışma (Claude Code + Cursor)
+## Working with Multiple Agents (Claude Code + Cursor)
 
-Aynı anda iki agent çalışırken çakışmayı önlemek için:
+To avoid conflicts when two agents work simultaneously:
 
-- **Her agent farklı branch'te çalışır** — asla aynı branch'te eş zamanlı çalışma
-- Yeni bir göreve başlamadan önce `git status` ile branch durumunu kontrol et
-- Commit'ten önce `git pull origin main --rebase` ile güncel kal
-- Aynı dosyayı iki agent aynı anda düzenliyorsa → önce birini bitir, merge et, sonra diğeri başlasın
+- **Each agent works on a different branch** — never work on the same branch concurrently
+- Check branch status with `git status` before starting a new task
+- Before committing, stay up to date with `git pull origin main --rebase`
+- If two agents are editing the same file simultaneously → finish one, merge it, then start the other
 
-## PR Kuralları
+## PR Rules
 
-- PR başlığı commit formatında: `feat(threads): add pagination`
-- PR açıklamasında Linear issue ID'si: `Closes DRA-15`
-- Main'e merge etmeden önce:
-  - [ ] Build alınıyor (`npm run build`)
-  - [ ] TypeScript hatası yok (`tsc --noEmit`)
-  - [ ] Varsa testler geçiyor
+- PR title in commit format: `feat(threads): add pagination`
+- Include Linear issue ID in PR description: `Closes DRA-15`
+- Before merging to main:
+  - [ ] Build passes (`npm run build`)
+  - [ ] No TypeScript errors (`tsc --noEmit`)
+  - [ ] Tests pass if any exist
 
-## Yasaklanan Şeyler
+## Forbidden Actions
 
-- `main` branch'e direkt push
-- `git push --force` (main'e)
-- Commit içinde `.env` dosyası
-- `console.log` içeren commit (geliştirme logları temizlenmeli)
-- `TODO:` yorum içeren commit (Linear issue aç, commit'e bırakma)
+- Direct push to `main` branch
+- `git push --force` (to main)
+- `.env` file in a commit
+- Commit containing `console.log` (remove development logs before committing)
+- Commit containing `TODO:` comments (open a Linear issue instead)

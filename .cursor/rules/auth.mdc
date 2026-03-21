@@ -1,33 +1,33 @@
 ---
-description: Better Auth kullanım kuralları — session okuma, route koruma
+description: Better Auth usage rules — reading sessions, protecting routes
 globs: ["src/lib/auth*", "src/app/**", "src/middleware.ts"]
 alwaysApply: false
 ---
 
-# Auth Kuralları
+# Auth Rules
 
-## Better Auth Yapısı
+## Better Auth Structure
 - Auth config: `src/lib/auth.ts` (server)
 - Auth client: `src/lib/auth-client.ts` (client)
 - API route: `src/app/api/auth/[...all]/route.ts`
 
-## Session Okuma
+## Reading Sessions
 ```ts
-// Server Component içinde
+// Inside a Server Component
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 const session = await auth.api.getSession({ headers: await headers() })
 
-// Client Component içinde
+// Inside a Client Component
 import { authClient } from "@/lib/auth-client"
 const { data: session } = authClient.useSession()
 ```
 
-## Route Koruma
-- `src/middleware.ts` ile korumalı path'leri tanımla
-- Server Component'te session yoksa `redirect("/login")`
-- Rol kontrolü server tarafında yap, client'ta sadece UI için kullan
+## Route Protection
+- Define protected paths via `src/middleware.ts`
+- In Server Components, `redirect("/login")` if no session
+- Perform role checks on the server side; use client side only for UI
 
-## Yetkisiz İşlem Engelleme
-- Her Server Action başında session + rol kontrolü yap
-- Yetki yoksa `throw new Error("Unauthorized")` değil, `redirect` veya `notFound()`
+## Blocking Unauthorized Actions
+- Check session + role at the start of every Server Action
+- If not authorized, use `redirect` or `notFound()` — do not `throw new Error("Unauthorized")`

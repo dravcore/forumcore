@@ -1,46 +1,46 @@
 ---
-description: React bileşen yazım kuralları — Server/Client ayrımı, shadcn/ui kullanımı
+description: React component writing rules — Server/Client separation, shadcn/ui usage
 globs: ["src/components/**", "src/app/**/*.tsx"]
 alwaysApply: false
 ---
 
-# Bileşen Kuralları
+# Component Rules
 
 ## Server vs Client
-- Varsayılan olarak Server Component yaz
-- `"use client"` direktifi yalnızca şu durumlarda:
-  - `useState`, `useEffect`, `useRef` gibi hook kullanımı
-  - Event handler (`onClick`, `onChange` vb.)
-  - Browser API erişimi
-  - Context provider
+- Write Server Components by default
+- Use the `"use client"` directive only when:
+  - Using hooks like `useState`, `useEffect`, `useRef`
+  - Attaching event handlers (`onClick`, `onChange`, etc.)
+  - Accessing browser APIs
+  - Creating context providers
 
-## Bileşen Organizasyonu
-- Sayfa bileşenleri: `src/app/` altında `page.tsx`
-- Paylaşılan bileşenler: `src/components/` altında
-- shadcn/ui bileşenleri: `src/components/ui/` — elle düzenleme yapma
-- Büyük sayfalara ait alt bileşenler: `src/app/[route]/_components/` altında
+## Component Organization
+- Page components: `page.tsx` under `src/app/`
+- Shared components: under `src/components/`
+- shadcn/ui components: `src/components/ui/` — do not edit manually
+- Sub-components for large pages: under `src/app/[route]/_components/`
 
-## Form ve Validasyon
-- Formlar Server Actions ile (`"use server"`)
-- Validasyon Zod ile, schema `src/server/validations/` altında
-- Client-side anlık validasyon için `react-hook-form` + `zodResolver`
+## Forms and Validation
+- Forms use Server Actions (`"use server"`)
+- Validation with Zod; schemas defined under `src/server/validations/`
+- For instant client-side validation: `react-hook-form` + `zodResolver`
 
-## Stil
-- Tailwind CSS sınıfları kullan, inline style yazma
-- Bileşen varyantları için `cn()` utility (`src/lib/utils.ts`)
-- shadcn/ui'dan bileşen eklemek için: `npx shadcn add <bileşen>`
+## Styling
+- Use Tailwind CSS classes; do not write inline styles
+- Use `cn()` utility for component variants (`src/lib/utils.ts`)
+- To add a shadcn/ui component: `npx shadcn add <component>`
 
 ## TypeScript
-- Props için ayrı interface tanımla, inline type kullanma
-- `React.FC` kullanma, direkt fonksiyon tanımı yap
+- Define a separate interface for props; do not use inline types
+- Do not use `React.FC`; use direct function definitions
 ```ts
-// Doğru
+// Correct
 interface ThreadCardProps {
   thread: Thread
   showCategory?: boolean
 }
 export function ThreadCard({ thread, showCategory = false }: ThreadCardProps) {}
 
-// Yanlış
+// Wrong
 const ThreadCard: React.FC<{ thread: Thread }> = ({ thread }) => {}
 ```

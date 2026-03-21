@@ -1,72 +1,72 @@
 ---
-description: UI/UX tasarım kuralları — görsel hiyerarşi, erişilebilirlik, kullanıcı deneyimi
+description: UI/UX design rules — visual hierarchy, accessibility, user experience
 globs: ["src/components/**", "src/app/**/*.tsx"]
 alwaysApply: false
 ---
 
-# UI/UX Tasarım Kuralları
+# UI/UX Design Rules
 
-Tüm UI kodu yazılırken deneyimli bir UI/UX tasarımcısı gibi düşün. Fonksiyonellik kadar görsel kalite, hiyerarşi ve kullanıcı deneyimi de birinci önceliktir.
+When writing UI code, think like an experienced UI/UX designer. Visual quality, hierarchy, and user experience are equally important as functionality.
 
-## Temel Prensipler
+## Core Principles
 
-- **Görsel hiyerarşi:** Kullanıcının gözü önemli elemanlara önce gitmelidir. Boyut, renk ve boşluk ile yönlendir
-- **Tutarlılık:** Benzer elemanlar benzer görünmeli. Spacing, renk, tipografi tutarlı olmalı
-- **Boşluk (whitespace):** Sıkışık UI yazma. Yeterli padding/margin kullan; nefes alan tasarım yap
-- **Geri bildirim:** Her kullanıcı aksiyonunun görsel karşılığı olmalı (hover, focus, loading, success, error)
-- **Mobil öncelikli:** Tüm bileşenler mobil uyumlu olmalı, breakpoint'ler `sm → md → lg` sırası ile
+- **Visual hierarchy:** The user's eye should go to important elements first. Guide with size, color, and spacing
+- **Consistency:** Similar elements should look similar. Spacing, color, and typography must be consistent
+- **Whitespace:** Do not write cramped UI. Use adequate padding/margin; give the design room to breathe
+- **Feedback:** Every user action must have a visual response (hover, focus, loading, success, error)
+- **Mobile-first:** All components must be mobile-responsive; use breakpoints in `sm → md → lg` order
 
-## Tipografi
+## Typography
 
-- Başlıklar için font-weight en az `font-semibold`
-- Body text `text-sm` ile `text-base` arası, yeterli `leading` (satır yüksekliği) ile
-- İkincil/yardımcı metinler için `text-muted-foreground` kullan (ham gri değil)
-- Metin hiyerarşisi: h1 > h2 > h3, her seviye belirgin farklılık taşımalı
+- Use at least `font-semibold` for headings
+- Body text between `text-sm` and `text-base` with adequate `leading` (line height)
+- Use `text-muted-foreground` for secondary/helper text (not raw gray)
+- Text hierarchy: h1 > h2 > h3 — each level must have a distinct visual difference
 
-## Renk ve Kontrast
+## Color and Contrast
 
-- shadcn/ui token'larını kullan (`background`, `foreground`, `muted`, `accent`, `destructive` vb.)
-- Ham hex renk veya `text-gray-*` gibi sabit renkler kullanma — tema uyumluluğu bozulur
-- Hata durumları için `destructive`, başarı için `text-green-600 dark:text-green-400` gibi dark mode uyumlu renkler
+- Use shadcn/ui tokens (`background`, `foreground`, `muted`, `accent`, `destructive`, etc.)
+- Do not use raw hex colors or fixed colors like `text-gray-*` — it breaks theme compatibility
+- For errors use `destructive`; for success use dark-mode-compatible colors like `text-green-600 dark:text-green-400`
 
-## Etkileşim Durumları
+## Interaction States
 
-Her interaktif eleman şu durumları taşımalı:
-- `hover:` — belirgin ama abartısız
-- `focus-visible:` — erişilebilirlik için `ring` ile
+Every interactive element must handle:
+- `hover:` — noticeable but not overdone
+- `focus-visible:` — accessible `ring` style
 - `disabled:` — `opacity-50 cursor-not-allowed`
-- Loading: skeleton veya spinner, içerik boş bırakılmaz
+- Loading: skeleton or spinner; never leave content blank
 
-## Boşluk Sistemi
+## Spacing System
 
-- Component iç padding: `p-3` ile `p-6` arası
-- Element arası gap: `gap-2` ile `gap-4` arası (listeler için `space-y-2`)
-- Sayfa container: `max-w-4xl mx-auto px-4`
-- Section arası: `py-8` veya `mb-8`
+- Component inner padding: between `p-3` and `p-6`
+- Gap between elements: between `gap-2` and `gap-4` (use `space-y-2` for lists)
+- Page container: `max-w-4xl mx-auto px-4`
+- Between sections: `py-8` or `mb-8`
 
-## Form Tasarımı
+## Form Design
 
-- Label her zaman input'un üstünde
-- Hata mesajı input'un altında, `text-destructive text-sm`
-- Zorunlu alanlar `*` ile işaretlenmeli
-- Submit butonu loading state'inde `disabled` + spinner göstermeli
+- Label always above the input
+- Error message below the input, as `text-destructive text-sm`
+- Required fields must be marked with `*`
+- Submit button must show `disabled` + spinner in loading state
 
-## Erişilebilirlik
+## Accessibility
 
-- Tüm interaktif elemanlara `aria-label` veya görünür etiket
-- Sadece ikondan oluşan butonlara `aria-label` zorunlu
-- Renk bilgiyi tek başına taşımamalı (ikonla destekle)
-- `<button>` yerine `<div onClick>` kullanma
+- All interactive elements must have an `aria-label` or visible label
+- Icon-only buttons must have an `aria-label`
+- Color must not be the sole carrier of information (support with icons)
+- Do not use `<div onClick>` instead of `<button>`
 
-## Boş Durumlar (Empty States)
+## Empty States
 
-- Veri yokken boş liste bırakma — açıklayıcı bir mesaj ve aksiyon butonu göster
-- Skeleton loader kullan, ani içerik çıkması yerine kademeli geçiş
+- Do not leave empty lists — show a descriptive message and an action button
+- Use skeleton loaders instead of sudden content appearances
 
-## Kötü Pratikler
+## Bad Practices
 
-- Çok fazla farklı renk kullanmak
-- Tutarsız border-radius (ya hep `rounded-md` ya hep `rounded-lg`)
-- Küçük ekranda taşan sabit genişlik (`w-[400px]` gibi)
-- Bütün text'i büyük harf yazmak
-- Alert/toast göstermek yerine satır içi hata mesajı vermekten kaçınmak
+- Using too many different colors
+- Inconsistent border-radius (pick either `rounded-md` or `rounded-lg` and stick to it)
+- Fixed widths that overflow on small screens (like `w-[400px]`)
+- Writing all text in uppercase
+- Avoiding inline error messages in favor of always using alerts/toasts

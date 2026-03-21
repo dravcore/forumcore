@@ -1,48 +1,48 @@
 ---
-description: Hata yönetimi kuralları — Server Actions, API routes, kullanıcı geri bildirimi
+description: Error handling rules — Server Actions, API routes, user feedback
 globs: ["src/**"]
 alwaysApply: false
 ---
 
-# Hata Yönetimi Kuralları
+# Error Handling Rules
 
-## Server Action Dönüş Yapısı
+## Server Action Return Structure
 
-Server Action'lar exception fırlatmak yerine yapılandırılmış sonuç döndürmeli.
+Server Actions should return structured results instead of throwing exceptions.
 
 ```ts
-// Standart dönüş tipi
+// Standard return type
 type ActionResult<T = void> =
   | { success: true; data: T }
   | { success: false; error: string }
 
-// Örnek action
+// Example action
 export async function createThread(input: unknown): Promise<ActionResult<{ slug: string }>> {
   try {
     const parsed = schema.safeParse(input)
-    if (!parsed.success) return { success: false, error: "Geçersiz veri" }
+    if (!parsed.success) return { success: false, error: "Invalid data" }
 
     const thread = await db.thread.create({ ... })
     return { success: true, data: { slug: thread.slug } }
   } catch (e) {
     console.error("[createThread]", e)
-    return { success: false, error: "Bir hata oluştu, lütfen tekrar deneyin" }
+    return { success: false, error: "Something went wrong, please try again" }
   }
 }
 ```
 
-## Hata Mesajları
+## Error Messages
 
-- Kullanıcıya **iç hata detayları gösterme** (DB hatası, stack trace vb.)
-- Kullanıcıya gösterilen mesajlar Türkçe ve anlaşılır olmalı
-- Geliştirici log'ları `console.error("[actionName]", error)` formatında
+- **Do not expose internal error details** to users (DB errors, stack traces, etc.)
+- Messages shown to users must be clear and user-friendly
+- Developer logs in the format: `console.error("[actionName]", error)`
 
-## Next.js Hata Sınırları
+## Next.js Error Boundaries
 
-- Her route segment için `error.tsx` tanımla
-- Global hata için `src/app/error.tsx`
-- Not found durumları için `src/app/not-found.tsx`
-- `error.tsx` "use client" olmak zorunda
+- Define `error.tsx` for every route segment
+- Global error: `src/app/error.tsx`
+- Not found: `src/app/not-found.tsx`
+- `error.tsx` must have `"use client"`
 
 ```tsx
 // src/app/error.tsx
@@ -50,40 +50,40 @@ export async function createThread(input: unknown): Promise<ActionResult<{ slug:
 export default function GlobalError({ reset }: { reset: () => void }) {
   return (
     <div>
-      <h2>Bir şeyler ters gitti</h2>
-      <button onClick={reset}>Tekrar dene</button>
+      <h2>Something went wrong</h2>
+      <button onClick={reset}>Try again</button>
     </div>
   )
 }
 ```
 
-## notFound ve redirect
+## notFound and redirect
 
-- Kaynak bulunamazsa `notFound()` — 404 sayfasını gösterir
-- Yetki yoksa `redirect("/login")` — 401/403 için exception fırlatma
-- `notFound()` ve `redirect()` try/catch içine alma — Next.js bunları özel exception olarak fırlatır
+- Use `notFound()` when a resource is not found — shows the 404 page
+- Use `redirect("/login")` when unauthorized — do not throw exceptions for 401/403
+- Do not wrap `notFound()` and `redirect()` in try/catch — Next.js throws them as special exceptions
 
 ```ts
-// Doğru
+// Correct
 const thread = await db.thread.findUnique({ where: { slug } })
 if (!thread) notFound()
 
-// Yanlış
+// Wrong
 try {
   const thread = await db.thread.findUniqueOrThrow(...)
 } catch {
-  notFound() // try/catch redirect/notFound'u yutar
+  notFound() // try/catch swallows redirect/notFound
 }
 ```
 
-## Form Hataları
+## Form Errors
 
-- Server Action hatalarını `useActionState` ile yakala
-- Her field için ayrı hata mesajı gösterebilecek yapı kur
-- Toast yalnızca genel başarı/hata bildirimleri için, field hatası için inline kullan
+- Catch Server Action errors with `useActionState`
+- Set up a structure capable of showing a separate error message per field
+- Use toast only for general success/error notifications; use inline messages for field errors
 
-## Loglama
+## Logging
 
-- `console.log` production'da bırakma — sadece `console.error` ve `console.warn`
-- Ileride Sentry/Betterstack entegrasyonu için logları `src/lib/logger.ts` üzerinden geç
-- Hassas veri (şifre, token, kişisel bilgi) loglama
+- Do not leave `console.log` in production — use only `console.error` and `console.warn`
+- Route logs through `src/lib/logger.ts` for future Sentry/Betterstack integration
+- Do not log sensitive data (passwords, tokens, personal information)

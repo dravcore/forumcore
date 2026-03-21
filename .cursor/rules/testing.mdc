@@ -1,69 +1,69 @@
 ---
-description: Test stratejisi — Vitest ile unit/entegrasyon testleri, Playwright ile E2E
+description: Test strategy — unit/integration tests with Vitest, E2E with Playwright
 globs: ["src/**", "tests/**", "*.test.ts", "*.spec.ts"]
 alwaysApply: false
 ---
 
-# Test Stratejisi
+# Test Strategy
 
-## Felsefe: "Güven Veren, Yük Olmayan Testler"
+## Philosophy: "Tests That Build Confidence, Not Burden"
 
-Her şeyi test etme. Sadece bozulursa seni en çok acıtacak şeyleri test et.
-Ölçüt: "Bu kod değişirse test beni uyarmalı mı?" → Evet ise yaz, hayır ise yazma.
+Do not test everything. Test only what would hurt most if it broke.
+Criterion: "Should a test warn me if this code changes?" → If yes, write it; if no, skip it.
 
-## Test Araçları
+## Test Tools
 
-| Araç | Kullanım |
-|------|----------|
-| **Vitest** | Unit ve entegrasyon testleri |
-| **Playwright** | E2E (kritik kullanıcı akışları) |
-| **@testing-library/react** | Bileşen testleri (gerektiğinde) |
+| Tool | Usage |
+|------|-------|
+| **Vitest** | Unit and integration tests |
+| **Playwright** | E2E (critical user flows) |
+| **@testing-library/react** | Component tests (when necessary) |
 
-## Ne Test Edilmeli
+## What to Test
 
-### ✅ Kesinlikle Test Et
+### ✅ Always Test
 
-**Server Actions (entegrasyon testi)**
+**Server Actions (integration tests)**
 ```ts
 // src/server/actions/__tests__/threadActions.test.ts
 describe("createThread", () => {
-  it("yetkisiz kullanıcı thread oluşturamamalı", async () => {})
-  it("geçersiz input reddedilmeli", async () => {})
-  it("başarılı oluşturma doğru veriyi döndürmeli", async () => {})
+  it("should not allow unauthorized users to create a thread", async () => {})
+  it("should reject invalid input", async () => {})
+  it("should return correct data on successful creation", async () => {})
 })
 ```
 
-**Utility Fonksiyonları (unit test)**
+**Utility Functions (unit tests)**
 ```ts
 // src/lib/__tests__/slugify.test.ts
 describe("slugify", () => {
-  it("Türkçe karakterleri dönüştürmeli", async () => {})
-  it("özel karakterleri temizlemeli", async () => {})
+  it("should convert special characters", async () => {})
+  it("should remove invalid characters", async () => {})
 })
 ```
 
-**Zod Validasyon Şemaları (unit test)**
+**Zod Validation Schemas (unit tests)**
 ```ts
 describe("createThreadSchema", () => {
-  it("boş başlığı reddetmeli", () => {})
-  it("çok uzun içeriği reddetmeli", () => {})
+  it("should reject an empty title", () => {})
+  it("should reject content that is too long", () => {})
 })
 ```
 
-**Kritik E2E Akışlar (Playwright)**
-- Kayıt ol → giriş yap
-- Thread oluştur → yanıt yaz
-- Admin kullanıcıyı banlayabilmeli
+**Critical E2E Flows (Playwright)**
+- Register → log in
+- Create thread → write a reply
+- Admin should be able to ban a user
 
-### ❌ Test Etme (Zaman Kaybı)
+### ❌ Do Not Test (Waste of Time)
 
-- shadcn/ui bileşenlerinin render'ı (zaten test edilmiş)
-- Sadece veri gösteren basit bileşenler
-- Next.js'in kendi davranışları (routing, middleware)
-- Snapshot testleri (kırılgan, bakımı zor)
-- Prisma'nın kendi sorgu davranışları
+- Rendering of shadcn/ui components (already tested)
+- Simple components that only display data
+- Next.js's own behaviors (routing, middleware)
+- Snapshot tests (brittle, hard to maintain)
+- Prisma's own query behavior
 
-## Dosya Yapısı
+## File Structure
 
 ```
 src/
@@ -71,7 +71,7 @@ src/
 │   ├── actions/
 │   │   ├── threadActions.ts
 │   │   └── __tests__/
-│   │       └── threadActions.test.ts   # Yanında test dosyası
+│   │       └── threadActions.test.ts   # Test file next to the source
 │   └── queries/
 │       ├── threadQueries.ts
 │       └── __tests__/
@@ -81,29 +81,29 @@ src/
 │   └── __tests__/
 │       └── utils.test.ts
 tests/
-└── e2e/                                # Playwright E2E testleri
+└── e2e/                                # Playwright E2E tests
     ├── auth.spec.ts
     └── thread.spec.ts
 ```
 
-## Test Yazım Kuralları
+## Test Writing Rules
 
-- Her test dosyası tek bir modülü test eder
-- Test açıklamaları Türkçe ve anlaşılır olmalı: `"boş başlığı reddetmeli"`
-- `it.only` veya `test.only` commit'e girmemeli
-- Test DB için ayrı `.env.test` kullan, production DB'ye dokunma
-- Her test bağımsız çalışabilmeli — önceki testin durumuna bağımlı olmamalı
+- Each test file tests a single module
+- Test descriptions must be clear and in English: `"should reject empty title"`
+- `it.only` or `test.only` must not be committed
+- Use a separate `.env.test` for the test DB; do not touch the production DB
+- Each test must be independent — it must not depend on the state of a previous test
 
-## Ne Zaman Test Yazılmalı
+## When to Write Tests
 
-- Yeni bir server action yazarken → action'ın yanına test yaz
-- Bug fix yaparken → önce bug'ı reproduce eden test yaz, sonra fix et
-- Kritik bir util fonksiyonu yazarken → edge case'leri test et
-- Yeni bir E2E akışı tamamlandığında → Playwright testi ekle
+- When writing a new server action → write the test alongside the action
+- When fixing a bug → first write a test that reproduces the bug, then fix it
+- When writing a critical utility function → test edge cases
+- When a new E2E flow is complete → add a Playwright test
 
-## Vitest Konfigürasyonu
+## Vitest Configuration
 
-`vitest.config.ts` oluşturulacak. Test ortamında:
-- Gerçek DB bağlantısı (test schema)
-- Better Auth mock yerine test session
-- Her test suite öncesi DB seed, sonrasında cleanup
+A `vitest.config.ts` will be created. In the test environment:
+- Real DB connection (test schema)
+- Test session instead of Better Auth mock
+- DB seed before each test suite, cleanup after

@@ -1,34 +1,34 @@
 ---
-description: İsimlendirme ve dosya yapısı kuralları — camelCase, dosya adları, fonksiyon isimleri
+description: Naming and file structure conventions — camelCase, file names, function names
 globs: ["src/**"]
 alwaysApply: true
 ---
 
-# İsimlendirme ve Dosya Yapısı Kuralları
+# Naming and File Structure Conventions
 
-## Dosya ve Klasör Adları
+## File and Folder Names
 
-| Tür | Format | Örnek |
-|-----|--------|-------|
-| Bileşen dosyası | PascalCase | `ThreadCard.tsx`, `UserAvatar.tsx` |
-| Sayfa/layout | kebab-case (Next.js zorunlu) | `page.tsx`, `not-found.tsx` |
+| Type | Format | Example |
+|------|--------|---------|
+| Component file | PascalCase | `ThreadCard.tsx`, `UserAvatar.tsx` |
+| Page/layout | kebab-case (required by Next.js) | `page.tsx`, `not-found.tsx` |
 | Server action | camelCase | `threadActions.ts`, `postActions.ts` |
-| Query dosyası | camelCase | `threadQueries.ts`, `userQueries.ts` |
+| Query file | camelCase | `threadQueries.ts`, `userQueries.ts` |
 | Util/lib | camelCase | `formatDate.ts`, `slugify.ts` |
-| Type dosyası | camelCase | `thread.types.ts` |
+| Type file | camelCase | `thread.types.ts` |
 | Hook | camelCase, `use` prefix | `useSession.ts`, `useInfiniteScroll.ts` |
 
-## Değişken ve Fonksiyon İsimleri
+## Variable and Function Names
 
-- Değişkenler ve fonksiyonlar: `camelCase`
-- Bileşenler ve tipler/interface'ler: `PascalCase`
-- Sabitler (değişmez değerler): `UPPER_SNAKE_CASE`
-- Boolean değişkenler `is`, `has`, `can`, `should` ile başlamalı: `isLoading`, `hasPermission`
-- Event handler'lar `handle` prefix'i ile: `handleSubmit`, `handleDelete`
+- Variables and functions: `camelCase`
+- Components and types/interfaces: `PascalCase`
+- Constants (immutable values): `UPPER_SNAKE_CASE`
+- Boolean variables must start with `is`, `has`, `can`, `should`: `isLoading`, `hasPermission`
+- Event handlers with `handle` prefix: `handleSubmit`, `handleDelete`
 
-## Server Action İsimlendirme
+## Server Action Naming
 
-Tüm server action'lar `fiil + Model` formatında:
+All server actions follow the `verb + Model` format:
 
 ```ts
 // src/server/actions/threadActions.ts
@@ -39,7 +39,7 @@ export async function pinThread(...) {}
 export async function lockThread(...) {}
 ```
 
-## Query Fonksiyon İsimlendirme
+## Query Function Naming
 
 ```ts
 // src/server/queries/threadQueries.ts
@@ -48,54 +48,54 @@ export async function getThreadsByCategory(...) {}
 export async function getThreadCount(...) {}
 ```
 
-## Bileşen Prop İsimlendirme
+## Component Prop Naming
 
-- Callback prop'lar `on` prefix'i ile: `onSubmit`, `onDelete`, `onClose`
-- Render prop'lar `render` prefix'i ile: `renderHeader`
-- Boolean prop'lar `is/has/can` ile: `isLoading`, `isDisabled`
+- Callback props with `on` prefix: `onSubmit`, `onDelete`, `onClose`
+- Render props with `render` prefix: `renderHeader`
+- Boolean props with `is/has/can`: `isLoading`, `isDisabled`
 
-## Klasör Yapısı Kuralları
+## Folder Structure Conventions
 
 ```
 src/
 ├── app/
-│   ├── (auth)/              # Route group — auth sayfaları
+│   ├── (auth)/              # Route group — auth pages
 │   │   ├── login/
 │   │   └── register/
-│   ├── (forum)/             # Route group — forum sayfaları
-│   │   ├── c/[slug]/        # Kategori sayfası
-│   │   └── t/[slug]/        # Thread sayfası
-│   └── admin/               # Admin paneli
-│       └── _components/     # Sadece admin'e ait bileşenler
+│   ├── (forum)/             # Route group — forum pages
+│   │   ├── c/[slug]/        # Category page
+│   │   └── t/[slug]/        # Thread page
+│   └── admin/               # Admin panel
+│       └── _components/     # Admin-only components
 ├── components/
-│   ├── ui/                  # shadcn/ui (dokunma)
-│   ├── forum/               # Forum'a özel bileşenler
-│   └── shared/              # Genel paylaşılan bileşenler
+│   ├── ui/                  # shadcn/ui (do not touch)
+│   ├── forum/               # Forum-specific components
+│   └── shared/              # Shared general components
 ├── server/
-│   ├── actions/             # Server Actions (mutation)
-│   ├── queries/             # DB okuma fonksiyonları
-│   └── validations/         # Zod şemaları
+│   ├── actions/             # Server Actions (mutations)
+│   ├── queries/             # DB read functions
+│   └── validations/         # Zod schemas
 └── lib/
     ├── db.ts                # Prisma singleton
     ├── auth.ts              # Better Auth config
-    ├── env.ts               # Environment validasyonu
-    └── utils.ts             # cn() ve genel utils
+    ├── env.ts               # Environment validation
+    └── utils.ts             # cn() and general utils
 ```
 
-## Import Sırası
+## Import Order
 
 ```ts
 // 1. React/Next.js
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
 
-// 2. Dış paketler
+// 2. External packages
 import { z } from "zod"
 
-// 3. İç modüller (@/ alias ile)
+// 3. Internal modules (with @/ alias)
 import { db } from "@/lib/db"
 import { ThreadCard } from "@/components/forum/ThreadCard"
 
-// 4. Tip import'ları
+// 4. Type imports
 import type { Thread } from "@/types/thread.types"
 ```
