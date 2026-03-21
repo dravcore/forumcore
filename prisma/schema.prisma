@@ -35,6 +35,9 @@ model User {
   role          Role     @default(MEMBER)
   bio           String?  @db.Text
   avatarUrl     String?
+  websiteUrl    String?
+  twitterHandle String?
+  githubHandle  String?
   bannedAt      DateTime?
   bannedReason  String?
 
