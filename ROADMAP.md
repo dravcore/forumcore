@@ -15,7 +15,7 @@
 
 ## Upcoming Phases
 
-In Linear, each phase below maps to an **epic** (**DRA-37** … **DRA-44**). The **Linear** column in the tables is the Dravcore team issue key (child tasks under that epic).
+In Linear, each phase below maps to a **milestone** and an **epic issue** (**DRA-37** … **DRA-44**). Sub-tasks are child issues under that epic. The **Linear** column shows the child issue key.
 
 > Branches are named after the feature, not the phase (e.g. `feat/rich-text-editor`).
 > All feature branches target `develop`. Only `develop` merges into `main`.
