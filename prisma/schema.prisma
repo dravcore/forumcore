@@ -183,6 +183,7 @@ model Thread {
   @@index([categoryId])
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
+  @@index([categoryId, deletedAt, updatedAt(sort: Desc)])
   @@map("threads")
 }
 
@@ -228,6 +229,7 @@ model Post {
   @@index([threadId])
   @@index([authorId])
   @@index([createdAt(sort: Asc)])
+  @@index([threadId, deletedAt, createdAt(sort: Asc)])
   @@map("posts")
 }
 
@@ -244,6 +246,7 @@ model Reaction {
 
   @@unique([postId, userId, type])
   @@index([postId])
+  @@index([postId, type])
   @@map("reactions")
 }
 
@@ -279,6 +282,7 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isRead, createdAt(sort: Desc)])
   @@map("notifications")
 }
 
