@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, MessageCircle } from 'lucide-react'
 import { useSession, signOut } from '@/lib/auth-client'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
@@ -26,6 +26,13 @@ export function NavbarUser() {
     return (
       <div className="flex items-center gap-2">
         <NotificationBell initialCount={0} />
+        <Link
+          href="/messages"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+          aria-label="Özel Mesajlar"
+        >
+          <MessageCircle className="h-4 w-4" />
+        </Link>
         <Link
           href={`/u/${session.user.name}`}
           className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"

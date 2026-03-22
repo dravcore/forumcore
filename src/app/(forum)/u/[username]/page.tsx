@@ -11,6 +11,7 @@ import { getSession } from '@/lib/session'
 import { formatDate, formatDistanceToNow } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
+import { SendMessageButton } from './_components/SendMessageButton'
 
 interface Props { params: Promise<{ username: string }> }
 
@@ -68,10 +69,12 @@ export default async function UserProfilePage({ params }: Props) {
                 </span>
               )}
             </div>
-            {isOwner && (
+            {isOwner ? (
               <Link href="/u/edit" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'mt-3 w-full')}>
                 <Pencil className="h-3.5 w-3.5" />Profili Düzenle
               </Link>
+            ) : session && (
+              <SendMessageButton targetUserId={user.id} />
             )}
           </div>
 
