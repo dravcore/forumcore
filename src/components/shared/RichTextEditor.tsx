@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useEffect, useImperativeHandle } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
@@ -17,8 +17,11 @@ import {
   Quote,
   Code2,
   Minus,
+  Eye,
+  Pencil,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { RichTextRenderer } from './RichTextRenderer'
 
 const lowlight = createLowlight(common)
 
@@ -64,6 +67,7 @@ function ToolbarButton({
 
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
   ({ value, onChange, placeholder, className, onBlur }, ref) => {
+    const [isPreview, setIsPreview] = useState(false)
     const editor = useEditor({
       extensions: [
         StarterKit.configure({ codeBlock: false }),
@@ -197,17 +201,41 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           >
             <Minus className="h-3.5 w-3.5" />
           </ToolbarButton>
+
+          <div className="ml-auto">
+            <ToolbarButton
+              onClick={() => setIsPreview((p) => !p)}
+              active={isPreview}
+              title={isPreview ? 'Düzenle' : 'Önizle'}
+            >
+              {isPreview ? (
+                <Pencil className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+            </ToolbarButton>
+          </div>
         </div>
 
-        {/* Editor area with placeholder */}
-        <div className="relative">
-          {editor.isEmpty && placeholder && (
-            <p className="pointer-events-none absolute left-4 top-3 text-sm text-muted-foreground">
-              {placeholder}
-            </p>
-          )}
-          <EditorContent editor={editor} />
-        </div>
+        {/* Editor / Preview area */}
+        {isPreview ? (
+          <div className="min-h-[160px] px-4 py-3">
+            {editor.isEmpty ? (
+              <p className="text-sm text-muted-foreground">Önizlenecek içerik yok.</p>
+            ) : (
+              <RichTextRenderer content={editor.getHTML()} />
+            )}
+          </div>
+        ) : (
+          <div className="relative">
+            {editor.isEmpty && placeholder && (
+              <p className="pointer-events-none absolute left-4 top-3 text-sm text-muted-foreground">
+                {placeholder}
+              </p>
+            )}
+            <EditorContent editor={editor} />
+          </div>
+        )}
       </div>
     )
   }
