@@ -12,7 +12,7 @@ interface Post {
   createdAt: Date
   author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
   _count: { reactions: number }
-  reactions: { id: string }[]
+  reactions: { id: string; type: string }[]
 }
 
 interface ThreadPostsSectionProps {

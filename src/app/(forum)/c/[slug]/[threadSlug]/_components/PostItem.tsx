@@ -9,6 +9,7 @@ import { RichTextRenderer } from '@/components/shared/RichTextRenderer'
 import { updatePost, deletePost } from '@/server/actions/postActions'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { LikeButton } from './LikeButton'
+import { DownvoteButton } from './DownvoteButton'
 import { ReportButton } from './ReportButton'
 import { AcceptAnswerButton } from './AcceptAnswerButton'
 
@@ -21,7 +22,7 @@ interface PostItemProps {
     createdAt: Date
     author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
     _count: { reactions: number }
-    reactions: { id: string }[]
+    reactions: { id: string; type: string }[]
   }
   isOP: boolean
   canEdit: boolean
@@ -75,7 +76,9 @@ export function PostItem({
   }
 
   const displayName = post.author.username ?? post.author.name
-  const liked = post.reactions.length > 0
+  const liked = post.reactions.some((r) => r.type === 'LIKE')
+  const disliked = post.reactions.some((r) => r.type === 'DISLIKE')
+  const likeCount = post._count.reactions
 
   return (
     <div
@@ -178,9 +181,15 @@ export function PostItem({
         <div className="mt-3 flex items-center gap-1 border-t pt-3">
           <LikeButton
             postId={post.id}
-            initialCount={post._count.reactions}
+            initialCount={likeCount}
             initialLiked={liked}
           />
+          {isLoggedIn && (
+            <DownvoteButton
+              postId={post.id}
+              initialDisliked={disliked}
+            />
+          )}
           {isLoggedIn && onQuote && (
             <Button
               variant="ghost"

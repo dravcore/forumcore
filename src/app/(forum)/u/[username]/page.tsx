@@ -7,11 +7,13 @@ import {
   FileText, Shield, Pencil, Star,
 } from 'lucide-react'
 import { getUserByUsername, getUserRecentThreads, getUserRecentPosts } from '@/server/queries/userQueries'
+import { getUserActivityCalendar } from '@/server/queries/activityQueries'
 import { getSession } from '@/lib/session'
 import { formatDate, formatDistanceToNow } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
 import { SendMessageButton } from './_components/SendMessageButton'
+import { ActivityCalendar } from './_components/ActivityCalendar'
 
 interface Props { params: Promise<{ username: string }> }
 
@@ -31,9 +33,10 @@ export default async function UserProfilePage({ params }: Props) {
   const displayName = user.username ?? user.name
   const isOwner = session?.user.id === user.id
 
-  const [recentThreads, recentPosts] = await Promise.all([
+  const [recentThreads, recentPosts, activityData] = await Promise.all([
     getUserRecentThreads(user.id),
     getUserRecentPosts(user.id),
+    getUserActivityCalendar(user.id),
   ])
 
   const roleLabel = user.role === 'ADMIN' ? 'Admin' : user.role === 'MODERATOR' ? 'Moderatör' : null
@@ -175,6 +178,16 @@ export default async function UserProfilePage({ params }: Props) {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Activity Calendar */}
+          <div>
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <CalendarDays className="h-4 w-4" />AKTİVİTE
+            </h2>
+            <div className="rounded-lg border bg-card p-4">
+              <ActivityCalendar activity={activityData} />
+            </div>
           </div>
 
           {/* Recent Posts */}
