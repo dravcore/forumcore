@@ -15,6 +15,7 @@ interface PostItemProps {
   post: {
     id: string
     content: string
+    processedContent?: string
     editedAt: Date | null
     createdAt: Date
     author: { id: string; name: string; username: string | null }
@@ -135,7 +136,7 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
           </div>
         </div>
       ) : (
-        <RichTextRenderer content={post.content} />
+        <RichTextRenderer content={post.processedContent ?? post.content} />
       )}
 
       {/* Post footer actions */}

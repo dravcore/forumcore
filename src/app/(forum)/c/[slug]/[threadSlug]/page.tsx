@@ -7,6 +7,7 @@ import { getSession } from '@/lib/session'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
+import { processContent } from '@/lib/contentProcessor'
 import { ThreadPostsSection } from './_components/ThreadPostsSection'
 import { DeleteThreadButton } from './_components/DeleteThreadButton'
 import { ThreadModActions } from './_components/ThreadModActions'
@@ -35,7 +36,14 @@ export default async function ThreadPage({ params, searchParams }: Props) {
   const [thread, session] = await Promise.all([getThreadBySlug(threadSlug), getSession()])
   if (!thread || thread.category.slug !== slug) notFound()
 
-  const { posts, pageCount } = await getPostsByThread(thread.id, page, session?.user.id)
+  const { posts: rawPosts, pageCount } = await getPostsByThread(thread.id, page, session?.user.id)
+
+  const posts = await Promise.all(
+    rawPosts.map(async (post) => ({
+      ...post,
+      processedContent: await processContent(post.content),
+    }))
+  )
 
   const isMod = !!(session && (session.user.role === 'ADMIN' || session.user.role === 'MODERATOR'))
   const canDeleteThread = !!(session && (session.user.id === thread.authorId || isMod))
