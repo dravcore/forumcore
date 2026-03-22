@@ -186,6 +186,16 @@
   border-top: 1px solid hsl(var(--border) / 1);
   margin: 1rem 0;
 }
+.rich-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--ring) / 1);
+  outline-offset: 2px;
+}
 
 /* Syntax highlighting (lowlight/highlight.js tokens) */
 .rich-content pre .hljs-comment,

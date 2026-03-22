@@ -1,9 +1,10 @@
 'use client'
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
+import { Image as TipTapImage } from '@tiptap/extension-image'
 import { createLowlight, common } from 'lowlight'
 import {
   Bold,
@@ -19,9 +20,12 @@ import {
   Minus,
   Eye,
   Pencil,
+  ImagePlus,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RichTextRenderer } from './RichTextRenderer'
+import { uploadPostImage } from '@/server/actions/uploadActions'
 
 const lowlight = createLowlight(common)
 
@@ -42,11 +46,13 @@ function ToolbarButton({
   onClick,
   active,
   title,
+  disabled,
   children,
 }: {
   onClick: () => void
   active?: boolean
   title: string
+  disabled?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -55,8 +61,9 @@ function ToolbarButton({
       onClick={onClick}
       title={title}
       aria-label={title}
+      disabled={disabled}
       className={cn(
-        'rounded p-1.5 transition-colors hover:bg-muted',
+        'rounded p-1.5 transition-colors hover:bg-muted disabled:opacity-40',
         active ? 'bg-muted text-foreground' : 'text-muted-foreground'
       )}
     >
@@ -68,10 +75,15 @@ function ToolbarButton({
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
   ({ value, onChange, placeholder, className, onBlur }, ref) => {
     const [isPreview, setIsPreview] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadError, setUploadError] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
     const editor = useEditor({
       extensions: [
         StarterKit.configure({ codeBlock: false }),
         CodeBlockLowlight.configure({ lowlight }),
+        TipTapImage.configure({ inline: false }),
       ],
       content: value || '',
       onUpdate: ({ editor }) => {
@@ -103,6 +115,29 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         editor?.commands.clearContent()
       },
     }))
+
+    async function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0]
+      if (!file || !editor) return
+
+      setUploadError(null)
+      setIsUploading(true)
+
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const result = await uploadPostImage(formData)
+
+      setIsUploading(false)
+      e.target.value = ''
+
+      if (!result.success) {
+        setUploadError(result.error)
+        return
+      }
+
+      editor.chain().focus().setImage({ src: result.url }).run()
+    }
 
     if (!editor) return null
 
@@ -202,6 +237,28 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             <Minus className="h-3.5 w-3.5" />
           </ToolbarButton>
 
+          <div className="mx-1 h-4 w-px bg-border" />
+
+          <ToolbarButton
+            onClick={() => fileInputRef.current?.click()}
+            active={false}
+            disabled={isUploading}
+            title="Görsel ekle"
+          >
+            {isUploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ImagePlus className="h-3.5 w-3.5" />
+            )}
+          </ToolbarButton>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleImageFileChange}
+          />
+
           <div className="ml-auto">
             <ToolbarButton
               onClick={() => setIsPreview((p) => !p)}
@@ -216,6 +273,11 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             </ToolbarButton>
           </div>
         </div>
+
+        {/* Upload error */}
+        {uploadError && (
+          <p className="border-b px-4 py-2 text-xs text-destructive">{uploadError}</p>
+        )}
 
         {/* Editor / Preview area */}
         {isPreview ? (
