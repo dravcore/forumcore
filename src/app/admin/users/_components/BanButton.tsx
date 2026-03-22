@@ -22,6 +22,7 @@ interface BanButtonProps {
 export function BanButton({ userId, isBanned }: BanButtonProps) {
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
+  const [durationDays, setDurationDays] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -34,10 +35,15 @@ export function BanButton({ userId, isBanned }: BanButtonProps) {
   function handleBan() {
     setError(null)
     startTransition(async () => {
-      const result = await banUser(userId, reason)
+      const days = parseInt(durationDays)
+      const bannedUntil = !isNaN(days) && days > 0
+        ? new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        : null
+      const result = await banUser(userId, reason, bannedUntil)
       if (!result.success) { setError(result.error); return }
       setOpen(false)
       setReason('')
+      setDurationDays('')
     })
   }
 
@@ -62,14 +68,27 @@ export function BanButton({ userId, isBanned }: BanButtonProps) {
           <DialogHeader>
             <DialogTitle>Kullanıcıyı Engelle</DialogTitle>
           </DialogHeader>
-          <div className="space-y-1.5">
-            <Label htmlFor="ban-reason">Engelleme Sebebi</Label>
-            <Input
-              id="ban-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Sebep girin..."
-            />
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="ban-reason">Engelleme Sebebi</Label>
+              <Input
+                id="ban-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Sebep girin..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ban-duration">Süre (gün) — boş bırakırsanız kalıcı</Label>
+              <Input
+                id="ban-duration"
+                type="number"
+                min="1"
+                value={durationDays}
+                onChange={(e) => setDurationDays(e.target.value)}
+                placeholder="ör: 7 (kalıcı için boş bırak)"
+              />
+            </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
           <DialogFooter>

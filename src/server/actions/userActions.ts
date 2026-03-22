@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/session'
+import { logAudit } from '@/lib/audit'
 
 const adminEditSchema = z.object({
   name: z.string().min(1).max(64),
@@ -33,22 +34,27 @@ export async function adminUpdateUser(userId: string, input: unknown) {
 }
 
 export async function changeUserRole(userId: string, role: 'ADMIN' | 'MODERATOR' | 'MEMBER') {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   await db.user.update({ where: { id: userId }, data: { role } })
+  void logAudit(session.user.id, 'CHANGE_ROLE', 'user', userId, { role })
 
   revalidatePath('/admin/users')
   return { success: true as const }
 }
 
-export async function banUser(userId: string, reason: string) {
-  await requireAdmin()
+export async function banUser(userId: string, reason: string, bannedUntil?: Date | null) {
+  const session = await requireAdmin()
 
   if (!reason?.trim()) return { success: false as const, error: 'Engelleme sebebi gerekli.' }
 
   await db.user.update({
     where: { id: userId },
-    data: { bannedAt: new Date(), bannedReason: reason },
+    data: { bannedAt: new Date(), bannedUntil: bannedUntil ?? null, bannedReason: reason },
+  })
+  void logAudit(session.user.id, 'BAN_USER', 'user', userId, {
+    reason,
+    bannedUntil: bannedUntil?.toISOString() ?? null,
   })
 
   revalidatePath('/admin/users')
@@ -56,12 +62,13 @@ export async function banUser(userId: string, reason: string) {
 }
 
 export async function unbanUser(userId: string) {
-  await requireAdmin()
+  const session = await requireAdmin()
 
   await db.user.update({
     where: { id: userId },
-    data: { bannedAt: null, bannedReason: null },
+    data: { bannedAt: null, bannedUntil: null, bannedReason: null },
   })
+  void logAudit(session.user.id, 'UNBAN_USER', 'user', userId, {})
 
   revalidatePath('/admin/users')
   return { success: true as const }

@@ -7,6 +7,7 @@ import { postContentSchema } from '@/server/validations/postValidations'
 import { createNotification } from './notificationActions'
 import { rateLimit } from '@/lib/rateLimit'
 import { recalculateReputation } from '@/lib/reputation'
+import { logAudit } from '@/lib/audit'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
@@ -116,6 +117,9 @@ export async function deletePost(postId: string, categorySlug: string, threadSlu
   })
 
   void recalculateReputation(post.authorId)
+  if (session.user.id !== post.authorId) {
+    void logAudit(session.user.id, 'DELETE_POST', 'post', postId, {})
+  }
 
   revalidatePath(`/c/${categorySlug}/${threadSlug}`)
   return { success: true as const }
