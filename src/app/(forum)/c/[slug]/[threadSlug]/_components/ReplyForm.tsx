@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useRef, useState, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor, type RichTextEditorRef } from '@/components/shared/RichTextEditor'
 import { createPost } from '@/server/actions/postActions'
 import { postContentSchema, type PostContentInput } from '@/server/validations/postValidations'
 
@@ -19,16 +18,17 @@ interface ReplyFormProps {
 }
 
 export function ReplyForm({ threadId, categorySlug, threadSlug, initialContent, onQuoteConsumed }: ReplyFormProps) {
+  const editorRef = useRef<RichTextEditorRef>(null)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  const { register, handleSubmit, reset, setValue, getValues, formState: { errors, isSubmitting } } = useForm<PostContentInput>({
+  const { handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<PostContentInput>({
     resolver: zodResolver(postContentSchema),
+    defaultValues: { content: '' },
   })
 
   useEffect(() => {
-    if (initialContent) {
-      const current = getValues('content') ?? ''
-      setValue('content', initialContent + current)
+    if (initialContent && editorRef.current) {
+      editorRef.current.insertAtStart(initialContent)
       onQuoteConsumed?.()
     }
   }, [initialContent]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -38,6 +38,7 @@ export function ReplyForm({ threadId, categorySlug, threadSlug, initialContent, 
     const result = await createPost(threadId, categorySlug, data)
     if (!result.success) { setServerError(result.error); return }
     reset()
+    editorRef.current?.clear()
   }
 
   return (
@@ -53,18 +54,20 @@ export function ReplyForm({ threadId, categorySlug, threadSlug, initialContent, 
             {serverError}
           </div>
         )}
-        <div className="space-y-1.5">
-          <Label htmlFor="reply-content" className="sr-only">Yanıt içeriği</Label>
-          <Textarea
-            id="reply-content"
-            placeholder="Yanıtını yaz..."
-            rows={5}
-            className="resize-y"
-            aria-invalid={!!errors.content}
-            {...register('content')}
-          />
-          {errors.content && <p className="text-xs text-destructive">{errors.content.message}</p>}
-        </div>
+        <Controller
+          name="content"
+          control={control}
+          render={({ field }) => (
+            <RichTextEditor
+              ref={editorRef}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              placeholder="Yanıtını yaz..."
+            />
+          )}
+        />
+        {errors.content && <p className="text-xs text-destructive">{errors.content.message}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="animate-spin" />}
           {isSubmitting ? 'Gönderiliyor...' : 'Yanıt Gönder'}
