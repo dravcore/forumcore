@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { LayoutGrid, Shield, Flag, Users, BarChart2, Settings } from 'lucide-react'
+import { LayoutGrid, Shield, Flag, Users, BarChart2, Settings, Tag } from 'lucide-react'
 import { requireAdmin } from '@/lib/session'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +23,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <Link href="/admin/users" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
             <Users className="h-3.5 w-3.5" />Kullanıcılar
+          </Link>
+          <Link href="/admin/tags" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <Tag className="h-3.5 w-3.5" />Etiketler
           </Link>
           <Link href="/admin/reports" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
             <Flag className="h-3.5 w-3.5" />Raporlar
