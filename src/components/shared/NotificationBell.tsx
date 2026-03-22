@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Bell, Check, MessageSquare, Heart, AtSign } from 'lucide-react'
+import { Bell, Check, MessageSquare, Heart, AtSign, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { markAllAsRead } from '@/server/actions/notificationActions'
 
 type Notification = {
   id: string
-  type: 'REPLY' | 'MENTION' | 'REACTION'
+  type: 'REPLY' | 'MENTION' | 'REACTION' | 'MESSAGE'
   isRead: boolean
   createdAt: Date
   threadId: string | null
@@ -25,12 +25,14 @@ const ICONS = {
   REPLY: MessageSquare,
   MENTION: AtSign,
   REACTION: Heart,
+  MESSAGE: MessageCircle,
 }
 
 const LABELS = {
   REPLY: 'konunuza yanıt verdi',
   MENTION: 'sizi bahsetti',
   REACTION: 'yanıtınızı beğendi',
+  MESSAGE: 'size özel mesaj gönderdi',
 }
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {
@@ -126,7 +128,7 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
               notifications.map((n) => {
                 const Icon = ICONS[n.type]
                 const label = LABELS[n.type]
-                const href = n.threadId ? `/c/${n.threadId}` : '/'
+                const href = n.type === 'MESSAGE' ? '/messages' : n.threadId ? `/c/${n.threadId}` : '/'
 
                 return (
                   <Link

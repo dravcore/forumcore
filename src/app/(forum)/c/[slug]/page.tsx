@@ -83,10 +83,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   {thread.isPinned && <Pin className="h-3 w-3 shrink-0 text-primary" />}
                   <span className="truncate font-medium group-hover:text-primary">{thread.title}</span>
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <span>{thread.author.username ?? thread.author.name}</span>
                   <span>·</span>
                   <span>{formatDistanceToNow(thread.createdAt)}</span>
+                  {thread.tags.map(({ tag }) => (
+                    <Link
+                      key={tag.id}
+                      href={`/tags/${tag.slug}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    >
+                      #{tag.name}
+                    </Link>
+                  ))}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-4 text-sm text-muted-foreground">

@@ -6,6 +6,8 @@ import { requireAuth, requireModerator } from '@/lib/session'
 import { slugify } from '@/lib/slugify'
 import { createThreadSchema } from '@/server/validations/threadValidations'
 import { rateLimit } from '@/lib/rateLimit'
+import { logAudit } from '@/lib/audit'
+import { dispatchWebhook } from '@/lib/webhook'
 
 async function generateUniqueSlug(title: string): Promise<string> {
   const base = slugify(title)
@@ -29,7 +31,7 @@ export async function createThread(categorySlug: string, input: unknown) {
   const parsed = createThreadSchema.safeParse(input)
   if (!parsed.success) return { success: false as const, error: 'Geçersiz veri.' }
 
-  const { title, content } = parsed.data
+  const { title, content, tagIds = [] } = parsed.data
 
   const category = await db.category.findUnique({ where: { slug: categorySlug } })
   if (!category) return { success: false as const, error: 'Kategori bulunamadı.' }
@@ -48,8 +50,11 @@ export async function createThread(categorySlug: string, input: unknown) {
           authorId: session.user.id,
         },
       },
+      tags: tagIds.length > 0 ? { create: tagIds.map((tagId) => ({ tagId })) } : undefined,
     },
   })
+
+  dispatchWebhook('thread.created', { threadId: thread.id, title: thread.title, categorySlug })
 
   revalidatePath(`/c/${categorySlug}`)
   revalidatePath('/')
@@ -70,6 +75,7 @@ export async function deleteThread(threadId: string, categorySlug: string) {
   if (!canDelete) return { success: false as const, error: 'Bu işlem için yetkin yok.' }
 
   await db.thread.delete({ where: { id: threadId } })
+  void logAudit(session.user.id, 'DELETE_THREAD', 'thread', threadId, {})
 
   revalidatePath(`/c/${categorySlug}`)
   revalidatePath('/')
@@ -77,7 +83,7 @@ export async function deleteThread(threadId: string, categorySlug: string) {
 }
 
 export async function pinThread(threadId: string, categorySlug: string) {
-  await requireModerator()
+  const session = await requireModerator()
 
   const thread = await db.thread.findUnique({ where: { id: threadId } })
   if (!thread) return { success: false as const, error: 'Konu bulunamadı.' }
@@ -86,13 +92,14 @@ export async function pinThread(threadId: string, categorySlug: string) {
     where: { id: threadId },
     data: { isPinned: !thread.isPinned },
   })
+  void logAudit(session.user.id, thread.isPinned ? 'UNPIN_THREAD' : 'PIN_THREAD', 'thread', threadId, {})
 
   revalidatePath(`/c/${categorySlug}`)
   return { success: true as const, isPinned: !thread.isPinned }
 }
 
 export async function lockThread(threadId: string, categorySlug: string) {
-  await requireModerator()
+  const session = await requireModerator()
 
   const thread = await db.thread.findUnique({ where: { id: threadId } })
   if (!thread) return { success: false as const, error: 'Konu bulunamadı.' }
@@ -101,6 +108,7 @@ export async function lockThread(threadId: string, categorySlug: string) {
     where: { id: threadId },
     data: { isLocked: !thread.isLocked },
   })
+  void logAudit(session.user.id, thread.isLocked ? 'UNLOCK_THREAD' : 'LOCK_THREAD', 'thread', threadId, {})
 
   revalidatePath(`/c/${categorySlug}`)
   return { success: true as const, isLocked: !thread.isLocked }

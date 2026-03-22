@@ -7,11 +7,12 @@ import { ReplyForm } from './ReplyForm'
 interface Post {
   id: string
   content: string
+  processedContent?: string
   editedAt: Date | null
   createdAt: Date
-  author: { id: string; name: string; username: string | null }
+  author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
   _count: { reactions: number }
-  reactions: { id: string }[]
+  reactions: { id: string; type: string }[]
 }
 
 interface ThreadPostsSectionProps {
@@ -25,6 +26,9 @@ interface ThreadPostsSectionProps {
   threadId: string
   categorySlug: string
   threadSlug: string
+  isQA?: boolean
+  acceptedPostId?: string | null
+  canAcceptAnswer?: boolean
 }
 
 export function ThreadPostsSection({
@@ -38,6 +42,9 @@ export function ThreadPostsSection({
   threadId,
   categorySlug,
   threadSlug,
+  isQA,
+  acceptedPostId,
+  canAcceptAnswer,
 }: ThreadPostsSectionProps) {
   const [quoteText, setQuoteText] = useState('')
 
@@ -46,6 +53,7 @@ export function ThreadPostsSection({
       <div className="flex flex-col gap-4">
         {posts.map((post, index) => {
           const canEditPost = !!(sessionUserId && (sessionUserId === post.author.id || isMod))
+          const isAccepted = isQA && post.id === acceptedPostId
           return (
             <PostItem
               key={post.id}
@@ -56,6 +64,9 @@ export function ThreadPostsSection({
               categorySlug={categorySlug}
               threadSlug={threadSlug}
               onQuote={!isLocked ? setQuoteText : undefined}
+              isQA={isQA}
+              isAccepted={!!isAccepted}
+              canAcceptAnswer={canAcceptAnswer && firstPostGlobalIndex + index !== 0}
             />
           )
         })}

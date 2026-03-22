@@ -7,9 +7,13 @@ import { getSession } from '@/lib/session'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
+import { processContent } from '@/lib/contentProcessor'
+import { db } from '@/lib/db'
 import { ThreadPostsSection } from './_components/ThreadPostsSection'
 import { DeleteThreadButton } from './_components/DeleteThreadButton'
 import { ThreadModActions } from './_components/ThreadModActions'
+import { BookmarkButton } from './_components/BookmarkButton'
+import { PollDisplay } from './_components/PollDisplay'
 
 interface Props {
   params: Promise<{ slug: string; threadSlug: string }>
@@ -35,11 +39,41 @@ export default async function ThreadPage({ params, searchParams }: Props) {
   const [thread, session] = await Promise.all([getThreadBySlug(threadSlug), getSession()])
   if (!thread || thread.category.slug !== slug) notFound()
 
-  const { posts, pageCount } = await getPostsByThread(thread.id, page, session?.user.id)
+  const { posts: rawPosts, pageCount } = await getPostsByThread(thread.id, page, session?.user.id)
+
+  const posts = await Promise.all(
+    rawPosts.map(async (post) => ({
+      ...post,
+      processedContent: await processContent(post.content),
+    }))
+  )
 
   const isMod = !!(session && (session.user.role === 'ADMIN' || session.user.role === 'MODERATOR'))
   const canDeleteThread = !!(session && (session.user.id === thread.authorId || isMod))
   const firstPostGlobalIndex = (page - 1) * 20
+
+  const [isBookmarked, poll] = await Promise.all([
+    session
+      ? db.bookmark.findUnique({
+          where: { userId_threadId: { userId: session.user.id, threadId: thread.id } },
+        }).then(Boolean)
+      : Promise.resolve(false),
+    db.poll.findUnique({
+      where: { threadId: thread.id },
+      include: { options: { include: { _count: { select: { votes: true } } }, orderBy: { order: 'asc' } } },
+    }),
+  ])
+
+  const userVotedOptionId = session && poll
+    ? (await db.pollVote.findFirst({
+        where: { userId: session.user.id, option: { pollId: poll.id } },
+        select: { optionId: true },
+      }))?.optionId
+    : undefined
+
+  const totalVotes = poll
+    ? poll.options.reduce((sum, o) => sum + o._count.votes, 0)
+    : 0
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -65,6 +99,14 @@ export default async function ThreadPage({ params, searchParams }: Props) {
                 isLocked={thread.isLocked}
               />
             )}
+            {session && (
+              <BookmarkButton
+                threadId={thread.id}
+                categorySlug={slug}
+                threadSlug={threadSlug}
+                initialBookmarked={isBookmarked}
+              />
+            )}
             {canDeleteThread && <DeleteThreadButton threadId={thread.id} categorySlug={slug} />}
           </div>
         </div>
@@ -83,6 +125,20 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         </div>
       </div>
 
+      {/* Poll */}
+      {poll && (
+        <div className="mb-6">
+          <PollDisplay
+            poll={poll}
+            userVotedOptionId={userVotedOptionId}
+            totalVotes={totalVotes}
+            categorySlug={slug}
+            threadSlug={threadSlug}
+            isLoggedIn={!!session}
+          />
+        </div>
+      )}
+
       {/* Posts + Reply */}
       <ThreadPostsSection
         posts={posts}
@@ -95,6 +151,9 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         threadId={thread.id}
         categorySlug={slug}
         threadSlug={threadSlug}
+        isQA={thread.isQA}
+        acceptedPostId={thread.acceptedPostId}
+        canAcceptAnswer={!!(session && (session.user.id === thread.authorId || isMod))}
       />
 
       {/* Post Pagination */}

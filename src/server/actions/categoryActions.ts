@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/session'
 import { categorySchema } from '@/server/validations/categoryValidations'
+import { cacheDel } from '@/lib/redis'
+
+const CATEGORIES_CACHE_KEY = 'categories:all'
 
 function slugify(text: string): string {
   return text
@@ -34,6 +37,7 @@ export async function createCategory(input: unknown) {
     const category = await db.category.create({
       data: { name, slug, description: description || null, order },
     })
+    void cacheDel(CATEGORIES_CACHE_KEY)
     revalidatePath('/')
     revalidatePath('/admin/categories')
     return { success: true as const, category }
@@ -59,6 +63,7 @@ export async function updateCategory(id: string, input: unknown) {
       where: { id },
       data: { name, slug, description: description || null },
     })
+    void cacheDel(CATEGORIES_CACHE_KEY)
     revalidatePath('/')
     revalidatePath('/admin/categories')
     return { success: true as const, category }
@@ -75,6 +80,7 @@ export async function deleteCategory(id: string) {
 
   try {
     await db.category.delete({ where: { id } })
+    void cacheDel(CATEGORIES_CACHE_KEY)
     revalidatePath('/')
     revalidatePath('/admin/categories')
     return { success: true as const }
@@ -103,6 +109,7 @@ export async function reorderCategory(id: string, direction: 'up' | 'down') {
     db.category.update({ where: { id: neighbor.id }, data: { order: category.order } }),
   ])
 
+  void cacheDel(CATEGORIES_CACHE_KEY)
   revalidatePath('/')
   revalidatePath('/admin/categories')
   return { success: true as const }

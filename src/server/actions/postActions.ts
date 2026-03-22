@@ -6,6 +6,9 @@ import { requireAuth } from '@/lib/session'
 import { postContentSchema } from '@/server/validations/postValidations'
 import { createNotification } from './notificationActions'
 import { rateLimit } from '@/lib/rateLimit'
+import { recalculateReputation } from '@/lib/reputation'
+import { logAudit } from '@/lib/audit'
+import { dispatchWebhook } from '@/lib/webhook'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
@@ -34,6 +37,8 @@ export async function createPost(threadId: string, categorySlug: string, input: 
     where: { id: threadId },
     data: { updatedAt: new Date() },
   })
+
+  dispatchWebhook('post.created', { postId: post.id, threadId, categorySlug })
 
   // Notify thread author on reply
   void createNotification({
@@ -65,6 +70,8 @@ export async function createPost(threadId: string, categorySlug: string, input: 
     )
   }
 
+  void recalculateReputation(session.user.id)
+
   revalidatePath(`/c/${categorySlug}/${thread.slug}`)
   return { success: true as const, post }
 }
@@ -84,6 +91,9 @@ export async function updatePost(postId: string, categorySlug: string, threadSlu
     session.user.role === 'MODERATOR'
 
   if (!canEdit) return { success: false as const, error: 'Bu işlem için yetkin yok.' }
+
+  // Save previous content to edit history before updating
+  await db.postEditHistory.create({ data: { postId, content: post.content } })
 
   await db.post.update({
     where: { id: postId },
@@ -111,6 +121,11 @@ export async function deletePost(postId: string, categorySlug: string, threadSlu
     where: { id: postId },
     data: { deletedAt: new Date() },
   })
+
+  void recalculateReputation(post.authorId)
+  if (session.user.id !== post.authorId) {
+    void logAudit(session.user.id, 'DELETE_POST', 'post', postId, {})
+  }
 
   revalidatePath(`/c/${categorySlug}/${threadSlug}`)
   return { success: true as const }

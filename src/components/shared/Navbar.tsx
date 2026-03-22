@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, TrendingUp, Trophy } from 'lucide-react'
 import { NavbarUser } from './NavbarUser'
 
 export function Navbar() {
@@ -19,6 +19,18 @@ export function Navbar() {
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Kategoriler
+          </Link>
+          <Link
+            href="/explore"
+            className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <TrendingUp className="h-3.5 w-3.5" />Keşfet
+          </Link>
+          <Link
+            href="/leaderboard"
+            className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Trophy className="h-3.5 w-3.5" />Liderlik
           </Link>
           <Link
             href="/search"

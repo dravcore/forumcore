@@ -21,6 +21,28 @@ enum NotificationType {
   REPLY
   MENTION
   REACTION
+  MESSAGE
+}
+
+enum AuditAction {
+  BAN_USER
+  UNBAN_USER
+  DELETE_POST
+  DELETE_THREAD
+  PIN_THREAD
+  UNPIN_THREAD
+  LOCK_THREAD
+  UNLOCK_THREAD
+  CHANGE_ROLE
+  RESOLVE_REPORT
+  DELETE_TAG
+  MERGE_TAG
+}
+
+enum TrustLevel {
+  MEMBER
+  REGULAR
+  VETERAN
 }
 
 // =============================================================================
@@ -44,17 +66,36 @@ model User {
   websiteUrl    String?
   twitterHandle String?
   githubHandle  String?
-  bannedAt      DateTime?
-  bannedReason  String?
+  bannedAt            DateTime?
+  bannedUntil         DateTime?
+  bannedReason        String?
+  reputation          Int        @default(0)
+  trustLevel          TrustLevel @default(MEMBER)
+  emailNotifications  Boolean    @default(true)
+  digestFrequency     String     @default("daily") // "off" | "daily" | "weekly"
+  twoFactorEnabled    Boolean    @default(false)
+  twoFactorSecret     String?    // encrypted TOTP secret
 
   // Relations
   sessions      Session[]
+  badges        UserBadge[]
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
+  auditLogs     AuditLog[]
   accounts      Account[]
   threads       Thread[]
   posts         Post[]
   reactions     Reaction[]
   reports       Report[]        @relation("reports_filed")
   notifications Notification[]  @relation("notifications_received")
+  apiKeys                ApiKey[]
+  webhooks               Webhook[]
+  bookmarks              Bookmark[]
+  following              UserFollow[]   @relation("follower")
+  followers              UserFollow[]   @relation("following")
+  categorySubscriptions  CategorySubscription[]
+  pollVotes              PollVote[]
+  postTemplates          PostTemplate[]
 
   @@map("users")
 }
@@ -122,22 +163,26 @@ model Category {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  threads Thread[]
+  threads       Thread[]
+  subscriptions CategorySubscription[]
 
   @@index([slug])
   @@map("categories")
 }
 
 model Thread {
-  id         String    @id @default(cuid())
-  title      String
-  slug       String    @unique
-  isPinned   Boolean   @default(false)
-  isLocked   Boolean   @default(false)
-  viewCount  Int       @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  isPinned        Boolean   @default(false)
+  isLocked        Boolean   @default(false)
+  isQA            Boolean   @default(false)  // Q&A mode
+  acceptedPostId  String?   // ID of accepted answer post
+  viewCount       Int       @default(0)
+  hotScore        Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -145,13 +190,40 @@ model Thread {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  posts Post[]
+  posts     Post[]
+  tags      ThreadTag[]
+  bookmarks Bookmark[]
+  poll      Poll?
 
   @@index([slug])
   @@index([categoryId])
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
+  @@index([categoryId, deletedAt, updatedAt(sort: Desc)])
   @@map("threads")
+}
+
+model Tag {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  slug      String      @unique
+  createdAt DateTime    @default(now())
+
+  threads ThreadTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model ThreadTag {
+  threadId String
+  tagId    String
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, tagId])
+  @@map("thread_tags")
 }
 
 model Post {
@@ -168,12 +240,26 @@ model Post {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  reactions Reaction[]
+  reactions   Reaction[]
+  editHistory PostEditHistory[]
 
   @@index([threadId])
   @@index([authorId])
   @@index([createdAt(sort: Asc)])
+  @@index([threadId, deletedAt, createdAt(sort: Asc)])
   @@map("posts")
+}
+
+model PostEditHistory {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  editedAt  DateTime @default(now())
+
+  postId    String
+  post      Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, editedAt(sort: Desc)])
+  @@map("post_edit_history")
 }
 
 model Reaction {
@@ -189,6 +275,7 @@ model Reaction {
 
   @@unique([postId, userId, type])
   @@index([postId])
+  @@index([postId, type])
   @@map("reactions")
 }
 
@@ -224,7 +311,104 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isRead, createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+model DailyStats {
+  id        String   @id @default(cuid())
+  date      DateTime @unique // truncated to day (UTC midnight)
+  dau       Int      @default(0)
+  newUsers  Int      @default(0)
+  newThreads Int     @default(0)
+  newPosts  Int      @default(0)
+
+  @@index([date(sort: Desc)])
+  @@map("daily_stats")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  action     AuditAction
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  content   String    @db.Text
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Asc)])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  key         String      @unique  // e.g. "first_post", "popular_thread"
+  name        String
+  description String
+  icon        String      // emoji or icon name
+  createdAt   DateTime    @default(now())
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  awardedAt DateTime @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeId String
+  badge   Badge  @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
 }
 
 model SiteSettings {
@@ -235,4 +419,137 @@ model SiteSettings {
   updatedAt        DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  name      String
+  keyHash   String    @unique  // SHA-256 of the raw key
+  lastUsedAt DateTime?
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model Webhook {
+  id        String    @id @default(cuid())
+  url       String
+  secret    String    // used for HMAC-SHA256 signature
+  events    String[]  // e.g. ["thread.created", "post.created"]
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("webhooks")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  threadId String
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("bookmarks")
+}
+
+model UserFollow {
+  followerId  String
+  follower    User   @relation("follower",  fields: [followerId],  references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model CategorySubscription {
+  userId     String
+  user       User     @relation(fields: [userId],     references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@id([userId, categoryId])
+  @@index([userId])
+  @@map("category_subscriptions")
+}
+
+model Poll {
+  id           String      @id @default(cuid())
+  question     String
+  endsAt       DateTime?
+  createdAt    DateTime    @default(now())
+
+  threadId     String      @unique
+  thread       Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  options      PollOption[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id        String      @id @default(cuid())
+  text      String
+  order     Int         @default(0)
+
+  pollId    String
+  poll      Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  votes     PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@index([userId])
+  @@map("poll_votes")
+}
+
+model PostTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  content     String   @db.Text
+  isGlobal    Boolean  @default(false)  // admin-created global templates
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId   String
+  creator     User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId])
+  @@map("post_templates")
 }

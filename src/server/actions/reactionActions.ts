@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/session'
 import { createNotification } from './notificationActions'
+import { recalculateReputation } from '@/lib/reputation'
 
 export async function toggleReaction(postId: string, type: string = 'LIKE') {
   const session = await requireAuth()
@@ -13,7 +14,9 @@ export async function toggleReaction(postId: string, type: string = 'LIKE') {
   })
 
   if (existing) {
+    const deletedPost = await db.post.findUnique({ where: { id: postId }, select: { authorId: true } })
     await db.reaction.delete({ where: { id: existing.id } })
+    if (deletedPost) void recalculateReputation(deletedPost.authorId)
     const count = await db.reaction.count({ where: { postId, type } })
     revalidatePath('/')
     return { success: true as const, liked: false, count }
@@ -33,6 +36,7 @@ export async function toggleReaction(postId: string, type: string = 'LIKE') {
       threadId: postData.threadId,
       postId,
     })
+    void recalculateReputation(postData.authorId)
   }
 
   const count = await db.reaction.count({ where: { postId, type } })
