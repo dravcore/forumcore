@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Keşfet — Trend Konular',
 }
 
-export const revalidate = 300 // refresh every 5 min
+export const dynamic = 'force-dynamic'
 
 export default async function ExplorePage() {
   const [hotThreads, categories] = await Promise.all([

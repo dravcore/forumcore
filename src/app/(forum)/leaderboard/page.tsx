@@ -4,7 +4,7 @@ import { Trophy, Medal, MessageSquare, Star } from 'lucide-react'
 import { db } from '@/lib/db'
 
 export const metadata: Metadata = { title: 'Liderlik Tablosu' }
-export const revalidate = 600
+export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {
   const [topByRep, topByPosts, topByThreads] = await Promise.all([
