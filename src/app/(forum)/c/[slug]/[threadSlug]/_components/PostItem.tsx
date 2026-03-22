@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Pencil, Trash2, Loader2, Check, X, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/shared/RichTextEditor'
+import { RichTextRenderer } from '@/components/shared/RichTextRenderer'
 import { updatePost, deletePost } from '@/server/actions/postActions'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { LikeButton } from './LikeButton'
@@ -25,7 +26,7 @@ interface PostItemProps {
   isLoggedIn: boolean
   categorySlug: string
   threadSlug: string
-  onQuote?: (text: string) => void
+  onQuote?: (html: string) => void
 }
 
 export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, threadSlug, onQuote }: PostItemProps) {
@@ -52,7 +53,8 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
 
   function handleQuote() {
     const displayName = post.author.username ?? post.author.name
-    const quoted = `> **${displayName}** yazdı:\n${post.content.split('\n').map((l) => `> ${l}`).join('\n')}\n\n`
+    const plainText = post.content.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim()
+    const quoted = `<blockquote><p><strong>${displayName}</strong> yazdı:</p><p>${plainText}</p></blockquote><p></p>`
     onQuote?.(quoted)
   }
 
@@ -85,10 +87,23 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
           </span>
           {canEdit && !isEditing && (
             <>
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} aria-label="Düzenle" className="h-7 w-7 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                aria-label="Düzenle"
+                className="h-7 w-7 p-0"
+              >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDelete} disabled={isPending} aria-label="Sil" className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDelete}
+                disabled={isPending}
+                aria-label="Sil"
+                className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </>
@@ -100,36 +115,27 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
       {isEditing ? (
         <div className="space-y-2">
           {editError && <p className="text-xs text-destructive">{editError}</p>}
-          <Textarea
+          <RichTextEditor
             value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            rows={6}
-            className="resize-y text-sm"
-            autoFocus
+            onChange={setEditContent}
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSaveEdit} disabled={isPending}>
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               Kaydet
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setEditContent(post.content) }} disabled={isPending}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setIsEditing(false); setEditContent(post.content) }}
+              disabled={isPending}
+            >
               <X className="h-3.5 w-3.5" />İptal
             </Button>
           </div>
         </div>
       ) : (
-        <div className="space-y-2 text-sm leading-relaxed text-foreground">
-          {post.content.split('\n').map((line, i) => {
-            if (line.startsWith('> ')) {
-              return (
-                <blockquote key={i} className="border-l-2 border-muted-foreground/30 pl-3 text-muted-foreground italic">
-                  {line.replace(/^> \*\*(.+?)\*\* yazdı:/, '').replace(/^> /, '') || '\u00A0'}
-                </blockquote>
-              )
-            }
-            return <p key={i} className={line === '' ? 'my-1' : ''}>{line || '\u00A0'}</p>
-          })}
-        </div>
+        <RichTextRenderer content={post.content} />
       )}
 
       {/* Post footer actions */}
