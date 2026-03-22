@@ -186,3 +186,31 @@
   border-top: 1px solid hsl(var(--border) / 1);
   margin: 1rem 0;
 }
+
+/* Syntax highlighting (lowlight/highlight.js tokens) */
+.rich-content pre .hljs-comment,
+.rich-content pre .hljs-quote { color: oklch(0.6 0 0); font-style: italic; }
+.rich-content pre .hljs-keyword,
+.rich-content pre .hljs-selector-tag,
+.rich-content pre .hljs-built_in { color: oklch(0.6 0.18 280); }
+.rich-content pre .hljs-string,
+.rich-content pre .hljs-attr,
+.rich-content pre .hljs-addition { color: oklch(0.55 0.15 140); }
+.rich-content pre .hljs-number,
+.rich-content pre .hljs-literal { color: oklch(0.6 0.17 50); }
+.rich-content pre .hljs-title,
+.rich-content pre .hljs-section { color: oklch(0.6 0.17 220); font-weight: 600; }
+.rich-content pre .hljs-variable,
+.rich-content pre .hljs-template-variable { color: oklch(0.6 0.17 30); }
+.rich-content pre .hljs-deletion { color: oklch(0.55 0.2 20); }
+.dark .rich-content pre .hljs-comment,
+.dark .rich-content pre .hljs-quote { color: oklch(0.6 0 0); }
+.dark .rich-content pre .hljs-keyword,
+.dark .rich-content pre .hljs-selector-tag,
+.dark .rich-content pre .hljs-built_in { color: oklch(0.75 0.18 280); }
+.dark .rich-content pre .hljs-string,
+.dark .rich-content pre .hljs-attr { color: oklch(0.75 0.15 140); }
+.dark .rich-content pre .hljs-number,
+.dark .rich-content pre .hljs-literal { color: oklch(0.75 0.17 50); }
+.dark .rich-content pre .hljs-title,
+.dark .rich-content pre .hljs-section { color: oklch(0.75 0.17 220); }

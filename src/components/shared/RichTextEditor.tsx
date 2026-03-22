@@ -3,6 +3,8 @@
 import { forwardRef, useEffect, useImperativeHandle } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
+import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
+import { createLowlight, common } from 'lowlight'
 import {
   Bold,
   Italic,
@@ -17,6 +19,8 @@ import {
   Minus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const lowlight = createLowlight(common)
 
 export interface RichTextEditorRef {
   insertAtStart: (html: string) => void
@@ -61,7 +65,10 @@ function ToolbarButton({
 export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
   ({ value, onChange, placeholder, className, onBlur }, ref) => {
     const editor = useEditor({
-      extensions: [StarterKit],
+      extensions: [
+        StarterKit.configure({ codeBlock: false }),
+        CodeBlockLowlight.configure({ lowlight }),
+      ],
       content: value || '',
       onUpdate: ({ editor }) => {
         onChange(editor.isEmpty ? '' : editor.getHTML())
