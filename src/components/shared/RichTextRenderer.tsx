@@ -2,7 +2,7 @@ import DOMPurify from 'isomorphic-dompurify'
 
 const ALLOWED_TAGS = [
   'p', 'br', 'strong', 'em', 's', 'code', 'pre',
-  'blockquote', 'ul', 'ol', 'li', 'h2', 'h3', 'hr',
+  'blockquote', 'ul', 'ol', 'li', 'h2', 'h3', 'hr', 'img',
 ]
 
 interface RichTextRendererProps {
@@ -13,7 +13,7 @@ interface RichTextRendererProps {
 export function RichTextRenderer({ content, className }: RichTextRendererProps) {
   const clean = DOMPurify.sanitize(content, {
     ALLOWED_TAGS,
-    ALLOWED_ATTR: [],
+    ALLOWED_ATTR: ['src', 'alt'],
   })
 
   return (
