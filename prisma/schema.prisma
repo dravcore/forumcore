@@ -66,11 +66,15 @@ model User {
   websiteUrl    String?
   twitterHandle String?
   githubHandle  String?
-  bannedAt      DateTime?
-  bannedUntil   DateTime?
-  bannedReason  String?
-  reputation    Int        @default(0)
-  trustLevel    TrustLevel @default(MEMBER)
+  bannedAt            DateTime?
+  bannedUntil         DateTime?
+  bannedReason        String?
+  reputation          Int        @default(0)
+  trustLevel          TrustLevel @default(MEMBER)
+  emailNotifications  Boolean    @default(true)
+  digestFrequency     String     @default("daily") // "off" | "daily" | "weekly"
+  twoFactorEnabled    Boolean    @default(false)
+  twoFactorSecret     String?    // encrypted TOTP secret
 
   // Relations
   sessions      Session[]

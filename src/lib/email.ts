@@ -57,6 +57,46 @@ export function replyEmailHtml({
   `
 }
 
+export function digestEmailHtml({
+  userName,
+  unreadCount,
+  notifications,
+  appUrl,
+}: {
+  userName: string
+  unreadCount: number
+  notifications: { text: string; url: string }[]
+  appUrl: string
+}) {
+  const items = notifications
+    .slice(0, 10)
+    .map(
+      (n) => `<li style="margin-bottom:8px">
+        <a href="${n.url}" style="color:#111;text-decoration:none">${n.text}</a>
+      </li>`
+    )
+    .join('')
+
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h1 style="font-size:18px;font-weight:700;margin-bottom:8px">Merhaba ${userName}</h1>
+      <p style="color:#6b7280;margin-bottom:16px">
+        ${unreadCount} okunmamış bildiriminiz var.
+      </p>
+      <ul style="padding-left:16px;margin-bottom:20px">${items}</ul>
+      <a href="${appUrl}/notifications" style="display:inline-block;background:#000;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:14px">
+        Tüm Bildirimleri Gör
+      </a>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
+      <p style="font-size:12px;color:#9ca3af">
+        Bu e-postayı almak istemiyorsanız
+        <a href="${appUrl}/settings/notifications" style="color:#9ca3af">
+          bildirim ayarlarınızdan</a> kapatabilirsiniz.
+      </p>
+    </div>
+  `
+}
+
 export function mentionEmailHtml({
   actorName,
   threadTitle,
