@@ -17,7 +17,7 @@ interface PostItemProps {
     content: string
     editedAt: Date | null
     createdAt: Date
-    author: { id: string; name: string; username: string | null }
+    author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
     _count: { reactions: number }
     reactions: { id: string }[]
   }
@@ -76,6 +76,16 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
             {isOP && (
               <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
                 Konu Yazarı
+              </span>
+            )}
+            {post.author.trustLevel === 'VETERAN' && (
+              <span title="Veteran" className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                🏆 Veteran
+              </span>
+            )}
+            {post.author.trustLevel === 'REGULAR' && (
+              <span title="Düzenli Üye" className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                ⭐ Düzenli
               </span>
             )}
           </div>
