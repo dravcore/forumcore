@@ -8,9 +8,11 @@ import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
 import { processContent } from '@/lib/contentProcessor'
+import { db } from '@/lib/db'
 import { ThreadPostsSection } from './_components/ThreadPostsSection'
 import { DeleteThreadButton } from './_components/DeleteThreadButton'
 import { ThreadModActions } from './_components/ThreadModActions'
+import { BookmarkButton } from './_components/BookmarkButton'
 
 interface Props {
   params: Promise<{ slug: string; threadSlug: string }>
@@ -49,6 +51,12 @@ export default async function ThreadPage({ params, searchParams }: Props) {
   const canDeleteThread = !!(session && (session.user.id === thread.authorId || isMod))
   const firstPostGlobalIndex = (page - 1) * 20
 
+  const isBookmarked = session
+    ? !!(await db.bookmark.findUnique({
+        where: { userId_threadId: { userId: session.user.id, threadId: thread.id } },
+      }))
+    : false
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Breadcrumb */}
@@ -71,6 +79,14 @@ export default async function ThreadPage({ params, searchParams }: Props) {
                 categorySlug={slug}
                 isPinned={thread.isPinned}
                 isLocked={thread.isLocked}
+              />
+            )}
+            {session && (
+              <BookmarkButton
+                threadId={thread.id}
+                categorySlug={slug}
+                threadSlug={threadSlug}
+                initialBookmarked={isBookmarked}
               />
             )}
             {canDeleteThread && <DeleteThreadButton threadId={thread.id} categorySlug={slug} />}

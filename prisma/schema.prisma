@@ -84,8 +84,12 @@ model User {
   reactions     Reaction[]
   reports       Report[]        @relation("reports_filed")
   notifications Notification[]  @relation("notifications_received")
-  apiKeys       ApiKey[]
-  webhooks      Webhook[]
+  apiKeys                ApiKey[]
+  webhooks               Webhook[]
+  bookmarks              Bookmark[]
+  following              UserFollow[]   @relation("follower")
+  followers              UserFollow[]   @relation("following")
+  categorySubscriptions  CategorySubscription[]
 
   @@map("users")
 }
@@ -153,7 +157,8 @@ model Category {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  threads Thread[]
+  threads       Thread[]
+  subscriptions CategorySubscription[]
 
   @@index([slug])
   @@map("categories")
@@ -177,8 +182,9 @@ model Thread {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  posts Post[]
-  tags  ThreadTag[]
+  posts     Post[]
+  tags      ThreadTag[]
+  bookmarks Bookmark[]
 
   @@index([slug])
   @@index([categoryId])
@@ -422,4 +428,48 @@ model Webhook {
 
   @@index([userId])
   @@map("webhooks")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  threadId String
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("bookmarks")
+}
+
+model UserFollow {
+  followerId  String
+  follower    User   @relation("follower",  fields: [followerId],  references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model CategorySubscription {
+  userId     String
+  user       User     @relation(fields: [userId],     references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@id([userId, categoryId])
+  @@index([userId])
+  @@map("category_subscriptions")
 }
