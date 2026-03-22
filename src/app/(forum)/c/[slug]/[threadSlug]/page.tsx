@@ -13,6 +13,7 @@ import { ThreadPostsSection } from './_components/ThreadPostsSection'
 import { DeleteThreadButton } from './_components/DeleteThreadButton'
 import { ThreadModActions } from './_components/ThreadModActions'
 import { BookmarkButton } from './_components/BookmarkButton'
+import { PollDisplay } from './_components/PollDisplay'
 
 interface Props {
   params: Promise<{ slug: string; threadSlug: string }>
@@ -51,11 +52,28 @@ export default async function ThreadPage({ params, searchParams }: Props) {
   const canDeleteThread = !!(session && (session.user.id === thread.authorId || isMod))
   const firstPostGlobalIndex = (page - 1) * 20
 
-  const isBookmarked = session
-    ? !!(await db.bookmark.findUnique({
-        where: { userId_threadId: { userId: session.user.id, threadId: thread.id } },
-      }))
-    : false
+  const [isBookmarked, poll] = await Promise.all([
+    session
+      ? db.bookmark.findUnique({
+          where: { userId_threadId: { userId: session.user.id, threadId: thread.id } },
+        }).then(Boolean)
+      : Promise.resolve(false),
+    db.poll.findUnique({
+      where: { threadId: thread.id },
+      include: { options: { include: { _count: { select: { votes: true } } }, orderBy: { order: 'asc' } } },
+    }),
+  ])
+
+  const userVotedOptionId = session && poll
+    ? (await db.pollVote.findFirst({
+        where: { userId: session.user.id, option: { pollId: poll.id } },
+        select: { optionId: true },
+      }))?.optionId
+    : undefined
+
+  const totalVotes = poll
+    ? poll.options.reduce((sum, o) => sum + o._count.votes, 0)
+    : 0
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -107,6 +125,20 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         </div>
       </div>
 
+      {/* Poll */}
+      {poll && (
+        <div className="mb-6">
+          <PollDisplay
+            poll={poll}
+            userVotedOptionId={userVotedOptionId}
+            totalVotes={totalVotes}
+            categorySlug={slug}
+            threadSlug={threadSlug}
+            isLoggedIn={!!session}
+          />
+        </div>
+      )}
+
       {/* Posts + Reply */}
       <ThreadPostsSection
         posts={posts}
@@ -119,6 +151,9 @@ export default async function ThreadPage({ params, searchParams }: Props) {
         threadId={thread.id}
         categorySlug={slug}
         threadSlug={threadSlug}
+        isQA={thread.isQA}
+        acceptedPostId={thread.acceptedPostId}
+        canAcceptAnswer={!!(session && (session.user.id === thread.authorId || isMod))}
       />
 
       {/* Post Pagination */}

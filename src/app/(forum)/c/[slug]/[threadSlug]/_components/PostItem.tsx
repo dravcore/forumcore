@@ -10,6 +10,7 @@ import { updatePost, deletePost } from '@/server/actions/postActions'
 import { formatDistanceToNow, formatDate } from '@/lib/dateUtils'
 import { LikeButton } from './LikeButton'
 import { ReportButton } from './ReportButton'
+import { AcceptAnswerButton } from './AcceptAnswerButton'
 
 interface PostItemProps {
   post: {
@@ -28,9 +29,23 @@ interface PostItemProps {
   categorySlug: string
   threadSlug: string
   onQuote?: (html: string) => void
+  isQA?: boolean
+  isAccepted?: boolean
+  canAcceptAnswer?: boolean
 }
 
-export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, threadSlug, onQuote }: PostItemProps) {
+export function PostItem({
+  post,
+  isOP,
+  canEdit,
+  isLoggedIn,
+  categorySlug,
+  threadSlug,
+  onQuote,
+  isQA,
+  isAccepted,
+  canAcceptAnswer,
+}: PostItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
   const [isPending, startTransition] = useTransition()
@@ -63,7 +78,16 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
   const liked = post.reactions.length > 0
 
   return (
-    <div className="rounded-lg border bg-card p-5" id={`post-${post.id}`}>
+    <div
+      className={`rounded-lg border bg-card p-5 ${isQA && isAccepted ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
+      id={`post-${post.id}`}
+    >
+      {isQA && isAccepted && (
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <Check className="h-3.5 w-3.5" />Kabul Edilen Yanıt
+        </div>
+      )}
+
       {/* Author header */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -167,6 +191,14 @@ export function PostItem({ post, isOP, canEdit, isLoggedIn, categorySlug, thread
             >
               <Quote className="h-3.5 w-3.5" />
             </Button>
+          )}
+          {isQA && canAcceptAnswer && (
+            <AcceptAnswerButton
+              postId={post.id}
+              categorySlug={categorySlug}
+              threadSlug={threadSlug}
+              isAccepted={!!isAccepted}
+            />
           )}
           {isLoggedIn && (
             <div className="ml-auto">

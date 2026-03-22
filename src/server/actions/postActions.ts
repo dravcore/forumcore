@@ -92,6 +92,9 @@ export async function updatePost(postId: string, categorySlug: string, threadSlu
 
   if (!canEdit) return { success: false as const, error: 'Bu işlem için yetkin yok.' }
 
+  // Save previous content to edit history before updating
+  await db.postEditHistory.create({ data: { postId, content: post.content } })
+
   await db.post.update({
     where: { id: postId },
     data: { content: parsed.data.content, editedAt: new Date() },

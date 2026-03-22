@@ -90,6 +90,8 @@ model User {
   following              UserFollow[]   @relation("follower")
   followers              UserFollow[]   @relation("following")
   categorySubscriptions  CategorySubscription[]
+  pollVotes              PollVote[]
+  postTemplates          PostTemplate[]
 
   @@map("users")
 }
@@ -165,16 +167,18 @@ model Category {
 }
 
 model Thread {
-  id         String    @id @default(cuid())
-  title      String
-  slug       String    @unique
-  isPinned   Boolean   @default(false)
-  isLocked   Boolean   @default(false)
-  viewCount  Int       @default(0)
-  hotScore   Float     @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  isPinned        Boolean   @default(false)
+  isLocked        Boolean   @default(false)
+  isQA            Boolean   @default(false)  // Q&A mode
+  acceptedPostId  String?   // ID of accepted answer post
+  viewCount       Int       @default(0)
+  hotScore        Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -185,6 +189,7 @@ model Thread {
   posts     Post[]
   tags      ThreadTag[]
   bookmarks Bookmark[]
+  poll      Poll?
 
   @@index([slug])
   @@index([categoryId])
@@ -231,13 +236,26 @@ model Post {
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
 
-  reactions Reaction[]
+  reactions   Reaction[]
+  editHistory PostEditHistory[]
 
   @@index([threadId])
   @@index([authorId])
   @@index([createdAt(sort: Asc)])
   @@index([threadId, deletedAt, createdAt(sort: Asc)])
   @@map("posts")
+}
+
+model PostEditHistory {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  editedAt  DateTime @default(now())
+
+  postId    String
+  post      Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, editedAt(sort: Desc)])
+  @@map("post_edit_history")
 }
 
 model Reaction {
@@ -472,4 +490,62 @@ model CategorySubscription {
   @@id([userId, categoryId])
   @@index([userId])
   @@map("category_subscriptions")
+}
+
+model Poll {
+  id           String      @id @default(cuid())
+  question     String
+  endsAt       DateTime?
+  createdAt    DateTime    @default(now())
+
+  threadId     String      @unique
+  thread       Thread      @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  options      PollOption[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id        String      @id @default(cuid())
+  text      String
+  order     Int         @default(0)
+
+  pollId    String
+  poll      Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  votes     PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@index([userId])
+  @@map("poll_votes")
+}
+
+model PostTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  content     String   @db.Text
+  isGlobal    Boolean  @default(false)  // admin-created global templates
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId   String
+  creator     User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId])
+  @@map("post_templates")
 }
