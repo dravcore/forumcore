@@ -280,6 +280,18 @@ model Notification {
   @@map("notifications")
 }
 
+model DailyStats {
+  id        String   @id @default(cuid())
+  date      DateTime @unique // truncated to day (UTC midnight)
+  dau       Int      @default(0)
+  newUsers  Int      @default(0)
+  newThreads Int     @default(0)
+  newPosts  Int      @default(0)
+
+  @@index([date(sort: Desc)])
+  @@map("daily_stats")
+}
+
 model AuditLog {
   id         String      @id @default(cuid())
   action     AuditAction

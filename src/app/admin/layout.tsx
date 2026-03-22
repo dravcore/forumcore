@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { LayoutGrid, Shield, Flag, Users, BarChart2, Settings, Tag, ShieldAlert, ClipboardList } from 'lucide-react'
+import { LayoutGrid, Shield, Flag, Users, BarChart2, Settings, Tag, ShieldAlert, ClipboardList, TrendingUp } from 'lucide-react'
 import { requireAdmin } from '@/lib/session'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +17,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav className="flex flex-wrap gap-1">
           <Link href="/admin" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
             <BarChart2 className="h-3.5 w-3.5" />Dashboard
+          </Link>
+          <Link href="/admin/analytics" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <TrendingUp className="h-3.5 w-3.5" />Analitik
           </Link>
           <Link href="/admin/categories" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
             <LayoutGrid className="h-3.5 w-3.5" />Kategoriler
