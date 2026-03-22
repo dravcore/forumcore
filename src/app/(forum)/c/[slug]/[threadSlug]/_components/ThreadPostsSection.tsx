@@ -9,7 +9,7 @@ interface Post {
   content: string
   editedAt: Date | null
   createdAt: Date
-  author: { id: string; name: string; username: string | null }
+  author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
   _count: { reactions: number }
   reactions: { id: string }[]
 }

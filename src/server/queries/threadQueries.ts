@@ -25,6 +25,7 @@ export async function getThreadsByCategory(categorySlug: string, page = 1) {
         createdAt: true,
         updatedAt: true,
         author: { select: { id: true, name: true, username: true } },
+        tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
         _count: { select: { posts: true } },
       },
     }),
@@ -62,7 +63,7 @@ export async function getPostsByThread(threadId: string, page = 1, userId?: stri
       skip,
       take: POSTS_PER_PAGE,
       include: {
-        author: { select: { id: true, name: true, username: true } },
+        author: { select: { id: true, name: true, username: true, trustLevel: true, reputation: true } },
         _count: { select: { reactions: true } },
         reactions: userId ? { where: { userId, type: 'LIKE' }, select: { id: true } } : false,
       },

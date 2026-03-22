@@ -75,7 +75,7 @@ refactor(queries): extract thread queries to separate file
 
 - PR targets `develop`, never `main`
 - Title in commit format: `feat(editor): add TipTap markdown support`
-- Include Linear issue ID in description: `Closes DRA-45` (use the real issue key from Linear; see `ROADMAP.md`)
+- Include Linear issue ID in description: `Closes DRA-45` (use the real issue key from Linear)
 - Before merging:
   - [ ] Build passes (`npm run build`)
   - [ ] No TypeScript errors (`tsc --noEmit`)

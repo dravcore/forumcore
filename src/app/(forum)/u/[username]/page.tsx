@@ -4,13 +4,14 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import {
   CalendarDays, MessageSquare, Globe, Twitter, Github,
-  FileText, Shield, User, Pencil,
+  FileText, Shield, Pencil, Star,
 } from 'lucide-react'
 import { getUserByUsername, getUserRecentThreads, getUserRecentPosts } from '@/server/queries/userQueries'
 import { getSession } from '@/lib/session'
 import { formatDate, formatDistanceToNow } from '@/lib/dateUtils'
 import { buttonVariants } from '@/lib/buttonVariants'
 import { cn } from '@/lib/utils'
+import { SendMessageButton } from './_components/SendMessageButton'
 
 interface Props { params: Promise<{ username: string }> }
 
@@ -36,6 +37,10 @@ export default async function UserProfilePage({ params }: Props) {
   ])
 
   const roleLabel = user.role === 'ADMIN' ? 'Admin' : user.role === 'MODERATOR' ? 'Moderatör' : null
+  const trustLabel =
+    user.trustLevel === 'VETERAN' ? { label: '🏆 Veteran', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' } :
+    user.trustLevel === 'REGULAR' ? { label: '⭐ Düzenli Üye', className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' } :
+    null
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -52,20 +57,33 @@ export default async function UserProfilePage({ params }: Props) {
               )}
             </div>
             <h1 className="text-lg font-semibold">{displayName}</h1>
-            {roleLabel && (
-              <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                <Shield className="h-3 w-3" />{roleLabel}
-              </span>
-            )}
-            {isOwner && (
+            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+              {roleLabel && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  <Shield className="h-3 w-3" />{roleLabel}
+                </span>
+              )}
+              {trustLabel && (
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${trustLabel.className}`}>
+                  {trustLabel.label}
+                </span>
+              )}
+            </div>
+            {isOwner ? (
               <Link href="/u/edit" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'mt-3 w-full')}>
                 <Pencil className="h-3.5 w-3.5" />Profili Düzenle
               </Link>
+            ) : session && (
+              <SendMessageButton targetUserId={user.id} />
             )}
           </div>
 
           {/* Stats */}
           <div className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground"><Star className="h-4 w-4" />İtibar</span>
+              <span className="font-medium">{user.reputation}</span>
+            </div>
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 text-muted-foreground"><FileText className="h-4 w-4" />Konu</span>
               <span className="font-medium">{user._count.threads}</span>
@@ -79,6 +97,25 @@ export default async function UserProfilePage({ params }: Props) {
               <span className="font-medium text-xs">{formatDate(user.createdAt)}</span>
             </div>
           </div>
+
+          {/* Badges */}
+          {user.badges.length > 0 && (
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rozetler</h3>
+              <div className="flex flex-wrap gap-2">
+                {user.badges.map(({ badge }) => (
+                  <div
+                    key={badge.key}
+                    title={badge.description}
+                    className="flex items-center gap-1.5 rounded-full border bg-muted px-2.5 py-1 text-xs font-medium"
+                  >
+                    <span>{badge.icon}</span>
+                    <span>{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bio */}
           {user.bio && (

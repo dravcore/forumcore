@@ -15,8 +15,17 @@ export async function getUserByUsername(username: string) {
       twitterHandle: true,
       githubHandle: true,
       role: true,
+      reputation: true,
+      trustLevel: true,
       createdAt: true,
       bannedAt: true,
+      badges: {
+        select: {
+          awardedAt: true,
+          badge: { select: { key: true, name: true, description: true, icon: true } },
+        },
+        orderBy: { awardedAt: 'asc' },
+      },
       _count: {
         select: {
           threads: { where: { deletedAt: null } },
