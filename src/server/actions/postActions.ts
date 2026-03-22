@@ -6,6 +6,7 @@ import { requireAuth } from '@/lib/session'
 import { postContentSchema } from '@/server/validations/postValidations'
 import { createNotification } from './notificationActions'
 import { rateLimit } from '@/lib/rateLimit'
+import { recalculateReputation } from '@/lib/reputation'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
@@ -65,6 +66,8 @@ export async function createPost(threadId: string, categorySlug: string, input: 
     )
   }
 
+  void recalculateReputation(session.user.id)
+
   revalidatePath(`/c/${categorySlug}/${thread.slug}`)
   return { success: true as const, post }
 }
@@ -111,6 +114,8 @@ export async function deletePost(postId: string, categorySlug: string, threadSlu
     where: { id: postId },
     data: { deletedAt: new Date() },
   })
+
+  void recalculateReputation(post.authorId)
 
   revalidatePath(`/c/${categorySlug}/${threadSlug}`)
   return { success: true as const }
