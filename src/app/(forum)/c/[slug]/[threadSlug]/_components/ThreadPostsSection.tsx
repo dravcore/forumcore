@@ -7,6 +7,7 @@ import { ReplyForm } from './ReplyForm'
 interface Post {
   id: string
   content: string
+  processedContent?: string
   editedAt: Date | null
   createdAt: Date
   author: { id: string; name: string; username: string | null; trustLevel: string; reputation: number }
