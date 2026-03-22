@@ -13,6 +13,7 @@ export const createThreadSchema = z.object({
     .string()
     .max(100000, 'İçerik çok uzun')
     .refine((val) => stripHtml(val).length >= 10, 'İçerik en az 10 karakter olmalı'),
+  tagIds: z.array(z.string()).max(5, 'En fazla 5 etiket seçebilirsin').optional(),
 })
 
 export type CreateThreadInput = z.infer<typeof createThreadSchema>

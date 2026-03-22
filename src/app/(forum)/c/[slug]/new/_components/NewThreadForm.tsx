@@ -9,16 +9,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
+import { TagSelector, type TagOption } from '@/components/shared/TagSelector'
 import { createThread } from '@/server/actions/threadActions'
 import { createThreadSchema, type CreateThreadInput } from '@/server/validations/threadValidations'
 
-export function NewThreadForm({ categorySlug }: { categorySlug: string }) {
+interface Props {
+  categorySlug: string
+  tags: TagOption[]
+}
+
+export function NewThreadForm({ categorySlug, tags }: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
 
   const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<CreateThreadInput>({
     resolver: zodResolver(createThreadSchema),
-    defaultValues: { title: '', content: '' },
+    defaultValues: { title: '', content: '', tagIds: [] },
   })
 
   async function onSubmit(data: CreateThreadInput) {
@@ -61,6 +67,23 @@ export function NewThreadForm({ categorySlug }: { categorySlug: string }) {
         />
         {errors.content && <p className="text-xs text-destructive">{errors.content.message}</p>}
       </div>
+      {tags.length > 0 && (
+        <div className="space-y-1.5">
+          <Label>Etiketler</Label>
+          <Controller
+            name="tagIds"
+            control={control}
+            render={({ field }) => (
+              <TagSelector
+                tags={tags}
+                value={field.value ?? []}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          {errors.tagIds && <p className="text-xs text-destructive">{errors.tagIds.message}</p>}
+        </div>
+      )}
       <div className="flex gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="animate-spin" />}

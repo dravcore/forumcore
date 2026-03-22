@@ -29,7 +29,7 @@ export async function createThread(categorySlug: string, input: unknown) {
   const parsed = createThreadSchema.safeParse(input)
   if (!parsed.success) return { success: false as const, error: 'Geçersiz veri.' }
 
-  const { title, content } = parsed.data
+  const { title, content, tagIds = [] } = parsed.data
 
   const category = await db.category.findUnique({ where: { slug: categorySlug } })
   if (!category) return { success: false as const, error: 'Kategori bulunamadı.' }
@@ -48,6 +48,7 @@ export async function createThread(categorySlug: string, input: unknown) {
           authorId: session.user.id,
         },
       },
+      tags: tagIds.length > 0 ? { create: tagIds.map((tagId) => ({ tagId })) } : undefined,
     },
   })
 

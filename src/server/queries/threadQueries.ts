@@ -25,6 +25,7 @@ export async function getThreadsByCategory(categorySlug: string, page = 1) {
         createdAt: true,
         updatedAt: true,
         author: { select: { id: true, name: true, username: true } },
+        tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
         _count: { select: { posts: true } },
       },
     }),

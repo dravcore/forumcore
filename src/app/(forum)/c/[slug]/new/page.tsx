@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { getCategoryBySlug } from '@/server/queries/categoryQueries'
+import { getAllTags } from '@/server/queries/tagQueries'
 import { getSession } from '@/lib/session'
 import { NewThreadForm } from './_components/NewThreadForm'
 
@@ -17,7 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewThreadPage({ params }: Props) {
   const { slug } = await params
-  const [category, session] = await Promise.all([getCategoryBySlug(slug), getSession()])
+  const [category, session, tags] = await Promise.all([
+    getCategoryBySlug(slug),
+    getSession(),
+    getAllTags(),
+  ])
   if (!category) notFound()
   if (!session) redirect(`/login?callbackUrl=/c/${slug}/new`)
 
@@ -27,7 +32,7 @@ export default async function NewThreadPage({ params }: Props) {
         <ChevronLeft className="h-3.5 w-3.5" />{category.name}
       </Link>
       <h1 className="mb-6 text-2xl font-bold">Yeni Konu</h1>
-      <NewThreadForm categorySlug={slug} />
+      <NewThreadForm categorySlug={slug} tags={tags} />
     </div>
   )
 }
