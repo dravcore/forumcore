@@ -8,6 +8,7 @@ import { createNotification } from './notificationActions'
 import { rateLimit } from '@/lib/rateLimit'
 import { recalculateReputation } from '@/lib/reputation'
 import { logAudit } from '@/lib/audit'
+import { dispatchWebhook } from '@/lib/webhook'
 
 export async function createPost(threadId: string, categorySlug: string, input: unknown) {
   const session = await requireAuth()
@@ -36,6 +37,8 @@ export async function createPost(threadId: string, categorySlug: string, input: 
     where: { id: threadId },
     data: { updatedAt: new Date() },
   })
+
+  dispatchWebhook('post.created', { postId: post.id, threadId, categorySlug })
 
   // Notify thread author on reply
   void createNotification({

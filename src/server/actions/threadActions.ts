@@ -7,6 +7,7 @@ import { slugify } from '@/lib/slugify'
 import { createThreadSchema } from '@/server/validations/threadValidations'
 import { rateLimit } from '@/lib/rateLimit'
 import { logAudit } from '@/lib/audit'
+import { dispatchWebhook } from '@/lib/webhook'
 
 async function generateUniqueSlug(title: string): Promise<string> {
   const base = slugify(title)
@@ -52,6 +53,8 @@ export async function createThread(categorySlug: string, input: unknown) {
       tags: tagIds.length > 0 ? { create: tagIds.map((tagId) => ({ tagId })) } : undefined,
     },
   })
+
+  dispatchWebhook('thread.created', { threadId: thread.id, title: thread.title, categorySlug })
 
   revalidatePath(`/c/${categorySlug}`)
   revalidatePath('/')
